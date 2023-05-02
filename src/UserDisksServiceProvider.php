@@ -1,12 +1,12 @@
 <?php
 
-namespace Biigle\Modules\Module;
+namespace Biigle\Modules\UserDisks;
 
 use Biigle\Services\Modules;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 
-class ModuleServiceProvider extends ServiceProvider
+class UserDisksServiceProvider extends ServiceProvider
 {
 
    /**
@@ -18,18 +18,18 @@ class ModuleServiceProvider extends ServiceProvider
    */
     public function boot(Modules $modules, Router $router)
     {
-        $this->loadViewsFrom(__DIR__.'/resources/views', 'module');
+        // $this->loadViewsFrom(__DIR__.'/resources/views', 'module');
 
-        $router->group([
-            'namespace' => 'Biigle\Modules\Module\Http\Controllers',
-            'middleware' => 'web',
-        ], function ($router) {
-            require __DIR__.'/Http/routes.php';
-        });
+        // $router->group([
+        //     'namespace' => 'Biigle\Modules\UserDisks\Http\Controllers',
+        //     'middleware' => 'web',
+        // ], function ($router) {
+        //     require __DIR__.'/Http/routes.php';
+        // });
 
-        $modules->register('module', [
+        $modules->register('user-disks', [
             'viewMixins' => [
-                'dashboardMain',
+                //
             ],
             'controllerMixins' => [
                 //
