@@ -19,6 +19,7 @@ class UserDisksServiceProvider extends ServiceProvider
     public function boot(Modules $modules, Router $router)
     {
         // $this->loadViewsFrom(__DIR__.'/resources/views', 'module');
+        $this->loadMigrationsFrom(__DIR__.'/Database/migrations');
 
         // $router->group([
         //     'namespace' => 'Biigle\Modules\UserDisks\Http\Controllers',
