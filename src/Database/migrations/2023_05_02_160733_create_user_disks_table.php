@@ -40,7 +40,7 @@ return new class extends Migration
         // config, too.
         DB::table('user_disk_types')->insert([
             ['name' => 's3', 'long_name' => 'S3'],
-            // ['name' => 'aos', 'long_name' => 'Aruna Object Storage'],
+            ['name' => 'aos', 'long_name' => 'Aruna Object Storage'],
         ]);
     }
 

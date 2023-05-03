@@ -18,4 +18,26 @@ class UserDiskTypeTest extends ModelTestCase
         $this->assertNull($this->model->created_at);
         $this->assertNull($this->model->updated_at);
     }
+
+    public function testGetConfigTemplate()
+    {
+        $template = [
+            'driver' => 'local',
+            'key' => 'value',
+        ];
+        config(['user_disks.disk_templates.test' => $template]);
+
+        $this->assertEquals($template, $this->model->getConfigTemplate());
+    }
+
+    public function testGetValidationRules()
+    {
+        $rules = [
+            'driver' => 'required',
+            'key' => 'filled',
+        ];
+        config(['user_disks.disk_validation.test' => $rules]);
+
+        $this->assertEquals($rules, $this->model->getValidationRules());
+    }
 }

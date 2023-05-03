@@ -69,8 +69,6 @@ class UserDisk extends Model
      */
     public function getConfig()
     {
-        $templates = config('user_disks.disk_templates');
-
-        return array_merge($templates[$this->type->name], $this->credentials);
+        return array_merge($this->type->getConfigTemplate(), $this->credentials);
     }
 }

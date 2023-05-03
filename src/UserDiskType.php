@@ -18,6 +18,7 @@ class UserDiskType extends Model
      */
     const INSTANCES = [
         's3' => 's3',
+        'aos' => 'aos',
     ];
 
     /**
@@ -26,6 +27,26 @@ class UserDiskType extends Model
      * @var bool
      */
     public $timestamps = false;
+
+    /**
+     * Return the storage disk config template associated with this disk type,
+     *
+     * @return array
+     */
+    public function getConfigTemplate()
+    {
+        return config("user_disks.disk_templates.{$this->name}");
+    }
+
+    /**
+     * Return the storage disk validation rules associated with this disk type,
+     *
+     * @return array
+     */
+    public function getValidationRules()
+    {
+        return config("user_disks.disk_validation.{$this->name}");
+    }
 
     /**
      * Create a new factory instance for the model.

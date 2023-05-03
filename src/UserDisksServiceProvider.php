@@ -19,7 +19,7 @@ class UserDisksServiceProvider extends ServiceProvider
    */
     public function boot(Modules $modules, Router $router)
     {
-        // $this->loadViewsFrom(__DIR__.'/resources/views', 'module');
+        // $this->loadViewsFrom(__DIR__.'/resources/views', 'user-disks');
         $this->loadMigrationsFrom(__DIR__.'/Database/migrations');
 
         // $router->group([
@@ -42,7 +42,7 @@ class UserDisksServiceProvider extends ServiceProvider
         ]);
 
         $this->publishes([
-            __DIR__.'/public/assets' => public_path('vendor/module'),
+            __DIR__.'/public/assets' => public_path('vendor/user-disks'),
         ], 'public');
 
         // This is used to resolve dynamic "disk-xxx" storage disks.
