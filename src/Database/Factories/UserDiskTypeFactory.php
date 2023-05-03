@@ -23,6 +23,7 @@ class UserDiskTypeFactory extends Factory
     {
         return [
             'name' => 'test',
+            'long_name' => 'Test Disk',
         ];
     }
 }

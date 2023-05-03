@@ -24,10 +24,10 @@ class UserDiskFactory extends Factory
     public function definition()
     {
         return [
+            'credentials' => [],
+            'name' => $this->faker->name(),
             'type_id' => UserDiskType::factory(),
             'user_id' => User::factory(),
-            'credentials' => ['abc'],
-            'name' => $this->faker->name(),
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace Biigle\Modules\UserDisks;
 use Biigle\Services\Modules;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Storage;
 
 class UserDisksServiceProvider extends ServiceProvider
 {
@@ -43,6 +44,20 @@ class UserDisksServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/public/assets' => public_path('vendor/module'),
         ], 'public');
+
+        // This is used to resolve dynamic "disk-xxx" storage disks.
+        Storage::addConfigResolver(function ($name) {
+            $matches = [];
+            if (preg_match('/^disk-([0-9]+)$/', $name, $matches) === 1) {
+                $disk = UserDisk::find($matches[1]);
+
+                if ($disk) {
+                    return $disk->getConfig();
+                }
+            }
+
+            return null;
+        });
     }
 
     /**

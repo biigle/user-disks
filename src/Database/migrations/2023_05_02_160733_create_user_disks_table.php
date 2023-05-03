@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('user_disk_types', function (Blueprint $table) {
             $table->id();
             $table->string('name', 32)->unique();
+            $table->string('long_name', 128)->unique();
         });
 
         Schema::create('user_disks', function (Blueprint $table) {
@@ -38,8 +39,8 @@ return new class extends Migration
         // Each UserDiskType (name) must be present in the user_disks.disk_templates
         // config, too.
         DB::table('user_disk_types')->insert([
-            ['name' => 's3'],
-            // ['name' => 'aos'],
+            ['name' => 's3', 'long_name' => 'S3'],
+            // ['name' => 'aos', 'long_name' => 'Aruna Object Storage'],
         ]);
     }
 
