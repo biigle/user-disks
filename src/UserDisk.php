@@ -18,7 +18,7 @@ class UserDisk extends Model
      */
     protected $fillable = [
         'name',
-        'type_id',
+        'type',
         'user_id',
         'credentials',
     ];
@@ -31,6 +31,30 @@ class UserDisk extends Model
     protected $casts = [
         'credentials' => 'encrypted:array',
     ];
+
+    /**
+     * Return the storage disk config template associated with the disk type,
+     *
+     * @param string $type
+     *
+     * @return array
+     */
+    public static function getConfigTemplate($type)
+    {
+        return config("user_disks.disk_templates.{$type}");
+    }
+
+    /**
+     * Return the storage disk validation rules associated with the disk type,
+     *
+     * @param string $type
+     *
+     * @return array
+     */
+    public static function getValidationRules($type)
+    {
+        return config("user_disks.disk_validation.{$type}");
+    }
 
     /**
      * Create a new factory instance for the model.
@@ -53,22 +77,12 @@ class UserDisk extends Model
     }
 
     /**
-     * The user disk type.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function type()
-    {
-        return $this->belongsTo(UserDiskType::class);
-    }
-
-    /**
      * Get the filesystem disk configuration array of this user disk.
      *
      * @return array
      */
     public function getConfig()
     {
-        return array_merge($this->type->getConfigTemplate(), $this->credentials);
+        return array_merge(static::getConfigTemplate($this->type), $this->credentials);
     }
 }

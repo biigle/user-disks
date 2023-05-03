@@ -4,7 +4,6 @@ namespace Biigle\Tests\Modules\UserDisks;
 
 use Biigle\Modules\UserDisks\UserDisk;
 use Biigle\Modules\UserDisks\UserDisksServiceProvider;
-use Biigle\Modules\UserDisks\UserDiskType;
 use Illuminate\Filesystem\Filesystem;
 use Storage;
 use TestCase;
@@ -25,13 +24,13 @@ class UserDisksServiceProviderTest extends TestCase
             'driver' => 'local',
             'root' => $root,
         ]]);
-        // UserDiskType factory default name is 'test'.
-        config(['user_disks.disk_templates.test' => [
+        // UserDiskType factory default name is 's3'.
+        config(['user_disks.disk_templates.s3' => [
             'driver' => 'local',
             'root' => $root,
         ]]);
 
-        $userDisk = UserDisk::factory()->create();
+        $userDisk = UserDisk::factory()->create(['type' => 's3']);
 
         $disk = Storage::disk('test');
         $disk->put('a/b.jpg', 'abc');

@@ -3,7 +3,6 @@
 namespace Biigle\Tests\Modules\UserDisks;
 
 use Biigle\Modules\UserDisks\UserDisk;
-use Biigle\Modules\UserDisks\UserDiskType;
 use Illuminate\Support\Facades\Crypt;
 use ModelTestCase;
 
@@ -35,10 +34,55 @@ class UserDiskTest extends ModelTestCase
         $this->assertEquals($credentials, json_decode(Crypt::decryptString($attributes['credentials']), true));
     }
 
+    public function testGetConfigTemplate()
+    {
+        $template = [
+            'driver' => 'local',
+            'key' => 'value',
+        ];
+        config(['user_disks.disk_templates.test' => $template]);
+
+        $this->assertEquals($template, UserDisk::getConfigTemplate('test'));
+    }
+
+    public function testGetValidationRules()
+    {
+        $rules = [
+            'driver' => 'required',
+            'key' => 'filled',
+        ];
+        config(['user_disks.disk_validation.test' => $rules]);
+
+        $this->assertEquals($rules, UserDisk::getValidationRules('test'));
+    }
+
     public function testGetConfig()
     {
+        $template = [
+            'driver' => 'local',
+            'key' => 'value',
+        ];
+        config(['user_disks.disk_templates.test' => $template]);
+
         $disk = UserDisk::factory()->make([
-            'type_id' => UserDiskType::s3Id(),
+            'type' => 'test',
+            'credentials' => [
+                'key' => 'abc',
+            ],
+        ]);
+
+        $expect = [
+            'driver' => 'local',
+            'key' => 'abc',
+        ];
+
+        $this->assertEquals($expect, $disk->getConfig());
+    }
+
+    public function testGetS3Config()
+    {
+        $disk = UserDisk::factory()->make([
+            'type' => 's3',
             'credentials' => [
                 'key' => 'abc',
                 'secret' => 'efg',
@@ -69,7 +113,8 @@ class UserDiskTest extends ModelTestCase
 
     public function testGetConfigTemplateDoesNotExist()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(\TypeError::class);
+        $this->model->type = 'test';
         $this->model->getConfig();
     }
 }

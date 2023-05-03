@@ -3,8 +3,8 @@
 return [
     /*
     | The default configuration arrays for filesystem disks that are filled differently
-    | by each user disk. Each UserDiskType in the database must have an entry here with
-    | the same key as the UserDiskType name.
+    | by each user disk. Each UserDisk type enum in the database must have an entry here
+    | withthe same key as the type.
     */
     'disk_templates' => [
         's3' => [

@@ -3,7 +3,6 @@
 namespace Biigle\Modules\UserDisks\Database\Factories;
 
 use Biigle\Modules\UserDisks\UserDisk;
-use Biigle\Modules\UserDisks\UserDiskType;
 use Biigle\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -26,7 +25,7 @@ class UserDiskFactory extends Factory
         return [
             'credentials' => [],
             'name' => $this->faker->name(),
-            'type_id' => UserDiskType::factory(),
+            'type' => 's3',
             'user_id' => User::factory(),
         ];
     }
