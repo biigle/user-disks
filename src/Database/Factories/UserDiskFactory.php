@@ -26,7 +26,7 @@ class UserDiskFactory extends Factory
         return [
             'type_id' => UserDiskType::factory(),
             'user_id' => User::factory(),
-            'credentials' => 'abc',
+            'credentials' => ['abc'],
             'name' => $this->faker->name(),
         ];
     }

@@ -35,6 +35,8 @@ return new class extends Migration
             $table->text('credentials');
         });
 
+        // Each UserDiskType (name) must be present in the user_disks.disk_templates
+        // config, too.
         DB::table('user_disk_types')->insert([
             ['name' => 's3'],
             // ['name' => 'aos'],

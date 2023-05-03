@@ -52,6 +52,6 @@ class UserDisksServiceProvider extends ServiceProvider
     */
     public function register()
     {
-        //
+        $this->mergeConfigFrom(__DIR__.'/config/user_disks.php', 'user_disks');
     }
 }

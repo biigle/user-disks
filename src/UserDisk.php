@@ -61,4 +61,16 @@ class UserDisk extends Model
     {
         return $this->belongsTo(UserDiskType::class);
     }
+
+    /**
+     * Get the filesystem disk configuration array of this user disk.
+     *
+     * @return array
+     */
+    public function getConfig()
+    {
+        $templates = config('user_disks.disk_templates');
+
+        return array_merge($templates[$this->type->name], $this->credentials);
+    }
 }
