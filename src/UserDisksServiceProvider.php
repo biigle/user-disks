@@ -22,12 +22,12 @@ class UserDisksServiceProvider extends ServiceProvider
         // $this->loadViewsFrom(__DIR__.'/resources/views', 'user-disks');
         $this->loadMigrationsFrom(__DIR__.'/Database/migrations');
 
-        // $router->group([
-        //     'namespace' => 'Biigle\Modules\UserDisks\Http\Controllers',
-        //     'middleware' => 'web',
-        // ], function ($router) {
-        //     require __DIR__.'/Http/routes.php';
-        // });
+        $router->group([
+            'namespace' => 'Biigle\Modules\UserDisks\Http\Controllers',
+            'middleware' => 'web',
+        ], function ($router) {
+            require __DIR__.'/Http/routes.php';
+        });
 
         $modules->register('user-disks', [
             'viewMixins' => [

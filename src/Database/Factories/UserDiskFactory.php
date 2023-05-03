@@ -23,8 +23,8 @@ class UserDiskFactory extends Factory
     public function definition()
     {
         return [
-            'credentials' => [],
             'name' => $this->faker->name(),
+            'options' => [],
             'type' => 's3',
             'user_id' => User::factory(),
         ];

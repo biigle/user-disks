@@ -19,14 +19,17 @@ return new class extends Migration
             $table->string('name', 128)->unique();
 
             // Each type must be present in the user_disks.disk_templates config, too.
-            $table->enum('type', ['s3', 'aos']);
+            $table->enum('type', [
+                's3',
+                // 'aos',
+            ]);
 
             $table->foreignId('user_id')
                 ->constrained()
                 ->cascadeOnDelete();
 
-            // This stores the credentials (depending on type) as encrypted JSON.
-            $table->text('credentials');
+            // This stores the options (depending on type) as encrypted JSON.
+            $table->text('options');
         });
     }
 

@@ -17,21 +17,21 @@ class UserDiskTest extends ModelTestCase
     {
         $this->assertNotNull($this->model->type);
         $this->assertNotNull($this->model->name);
-        $this->assertNotNull($this->model->credentials);
+        $this->assertNotNull($this->model->options);
         $this->assertNotNull($this->model->user);
         $this->assertNotNull($this->model->created_at);
         $this->assertNotNull($this->model->updated_at);
     }
 
-    public function testEncryptCredentials()
+    public function testEncryptOptions()
     {
-        $credentials = [
+        $options = [
             'id' => 'abcde',
             'secret' => 'fghij',
         ];
-        $this->model->credentials = $credentials;
+        $this->model->options = $options;
         $attributes = $this->model->getAttributes();
-        $this->assertEquals($credentials, json_decode(Crypt::decryptString($attributes['credentials']), true));
+        $this->assertEquals($options, json_decode(Crypt::decryptString($attributes['options']), true));
     }
 
     public function testGetConfigTemplate()
@@ -66,7 +66,7 @@ class UserDiskTest extends ModelTestCase
 
         $disk = UserDisk::factory()->make([
             'type' => 'test',
-            'credentials' => [
+            'options' => [
                 'key' => 'abc',
             ],
         ]);
@@ -83,7 +83,7 @@ class UserDiskTest extends ModelTestCase
     {
         $disk = UserDisk::factory()->make([
             'type' => 's3',
-            'credentials' => [
+            'options' => [
                 'key' => 'abc',
                 'secret' => 'efg',
                 'region' => 'us-east-1',

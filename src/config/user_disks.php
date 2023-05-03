@@ -26,7 +26,7 @@ return [
     ],
 
     /*
-     | Validation rules for credentials of each user disk type.
+     | Validation rules for options of each user disk type.
      */
     'disk_validation' => [
         's3' => [

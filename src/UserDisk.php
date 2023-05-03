@@ -20,7 +20,7 @@ class UserDisk extends Model
         'name',
         'type',
         'user_id',
-        'credentials',
+        'options',
     ];
 
     /**
@@ -29,7 +29,7 @@ class UserDisk extends Model
      * @var array
      */
     protected $casts = [
-        'credentials' => 'encrypted:array',
+        'options' => 'encrypted:array',
     ];
 
     /**
@@ -83,6 +83,6 @@ class UserDisk extends Model
      */
     public function getConfig()
     {
-        return array_merge(static::getConfigTemplate($this->type), $this->credentials);
+        return array_merge(static::getConfigTemplate($this->type), $this->options);
     }
 }
