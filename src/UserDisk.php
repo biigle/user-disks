@@ -12,6 +12,27 @@ class UserDisk extends Model
     use HasFactory;
 
     /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name',
+        'type_id',
+        'user_id',
+        'credentials',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'credentials' => 'encrypted:array',
+    ];
+
+    /**
      * Create a new factory instance for the model.
      *
      * @return \Illuminate\Database\Eloquent\Factories\Factory

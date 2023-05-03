@@ -27,6 +27,7 @@ class UserDiskFactory extends Factory
             'type_id' => UserDiskType::factory(),
             'user_id' => User::factory(),
             'credentials' => 'abc',
+            'name' => $this->faker->name(),
         ];
     }
 }

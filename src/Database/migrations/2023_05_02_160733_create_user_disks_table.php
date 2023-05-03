@@ -21,6 +21,7 @@ return new class extends Migration
         Schema::create('user_disks', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->string('name', 128)->unique();
 
             $table->foreignId('type_id')
                 ->constrained('user_disk_types')
