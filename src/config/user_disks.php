@@ -24,18 +24,4 @@ return [
             'use_path_style_endpoint' => false,
         ],
     ],
-
-    /*
-     | Validation rules for options of each user disk type.
-     */
-    'disk_validation' => [
-        's3' => [
-            'key' => 'required',
-            'secret' => 'required',
-            'region' => 'required',
-            'bucket' => 'required',
-            'endpoint' => 'required|url',
-            'use_path_style_endpoint' => 'boolean',
-        ],
-    ],
 ];

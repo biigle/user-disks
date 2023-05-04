@@ -45,17 +45,6 @@ class UserDiskTest extends ModelTestCase
         $this->assertEquals($template, UserDisk::getConfigTemplate('test'));
     }
 
-    public function testGetValidationRules()
-    {
-        $rules = [
-            'driver' => 'required',
-            'key' => 'filled',
-        ];
-        config(['user_disks.disk_validation.test' => $rules]);
-
-        $this->assertEquals($rules, UserDisk::getValidationRules('test'));
-    }
-
     public function testGetConfig()
     {
         $template = [

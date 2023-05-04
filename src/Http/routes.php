@@ -6,7 +6,7 @@ $router->group([
     'middleware' => ['api', 'auth:web,api'],
 ], function ($router) {
     $router->resource('user-disks', 'UserDiskController', [
-        'only' => ['store'],
+        'only' => ['store', 'update', 'destroy'],
         'parameters' => ['user-disks' => 'id'],
     ]);
 });

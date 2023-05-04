@@ -5,8 +5,15 @@ namespace Biigle\Modules\UserDisks\Http\Requests;
 use Biigle\Modules\UserDisks\UserDisk;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreUserDisk extends FormRequest
+class UpdateUserDisk extends FormRequest
 {
+    /**
+     * The user disk that should be updated.
+     *
+     * @var UserDisk
+     */
+    public $disk;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -14,7 +21,9 @@ class StoreUserDisk extends FormRequest
      */
     public function authorize()
     {
-        return $this->user()->can('create', UserDisk::class);
+        $this->disk = UserDisk::findOrFail($this->route('id'));
+
+        return $this->user()->can('update', $this->disk);
     }
 
     /**
@@ -25,8 +34,7 @@ class StoreUserDisk extends FormRequest
     public function rules()
     {
         return array_merge([
-            'name' => 'required',
-            'type' => 'required|in:s3',
+            'name' => 'filled',
         ], $this->getTypeValidationRules());
     }
 
@@ -37,14 +45,14 @@ class StoreUserDisk extends FormRequest
      */
     public function getTypeValidationRules()
     {
-        switch ($this->input('type')) {
+        switch ($this->disk->type) {
             case 's3':
                 return [
-                    'key' => 'required',
-                    'secret' => 'required',
-                    'region' => 'required',
-                    'bucket' => 'required',
-                    'endpoint' => 'required|url',
+                    'key' => 'filled',
+                    'secret' => 'filled',
+                    'region' => 'filled',
+                    'bucket' => 'filled',
+                    'endpoint' => 'filled|url',
                     'use_path_style_endpoint' => 'boolean',
                 ];
             default:

@@ -45,18 +45,6 @@ class UserDisk extends Model
     }
 
     /**
-     * Return the storage disk validation rules associated with the disk type,
-     *
-     * @param string $type
-     *
-     * @return array
-     */
-    public static function getValidationRules($type)
-    {
-        return config("user_disks.disk_validation.{$type}");
-    }
-
-    /**
      * Create a new factory instance for the model.
      *
      * @return \Illuminate\Database\Eloquent\Factories\Factory
