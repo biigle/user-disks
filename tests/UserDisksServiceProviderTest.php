@@ -25,7 +25,7 @@ class UserDisksServiceProviderTest extends TestCase
             'root' => $root,
         ]]);
         // UserDiskType factory default name is 's3'.
-        config(['user_disks.disk_templates.s3' => [
+        config(['user_disks.templates.s3' => [
             'driver' => 'local',
             'root' => $root,
         ]]);

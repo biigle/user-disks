@@ -6,6 +6,7 @@ use Biigle\Modules\UserDisks\Database\Factories\UserDiskFactory;
 use Biigle\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 
 class UserDisk extends Model
 {
@@ -41,7 +42,31 @@ class UserDisk extends Model
      */
     public static function getConfigTemplate($type)
     {
-        return config("user_disks.disk_templates.{$type}");
+        return config("user_disks.templates.{$type}");
+    }
+
+    /**
+     * Return the validation rules to create a disk with a specific type.
+     *
+     * @param string $type
+     *
+     * @return array
+     */
+    public static function getStoreValidationRules($type)
+    {
+        return config("user_disks.store_validation.{$type}");
+    }
+
+    /**
+     * Return the validation rules to update a disk with a specific type.
+     *
+     * @param string $type
+     *
+     * @return array
+     */
+    public static function getUpdateValidationRules($type)
+    {
+        return config("user_disks.update_validation.{$type}");
     }
 
     /**
@@ -72,5 +97,15 @@ class UserDisk extends Model
     public function getConfig()
     {
         return array_merge(static::getConfigTemplate($this->type), $this->options);
+    }
+
+    /**
+     * Get the options without the secret options.
+     *
+     * @return array
+     */
+    public function getPublicOptionsAttribute()
+    {
+        return Arr::except($this->options, config("user_disks.secret_options.{$this->type}"));
     }
 }

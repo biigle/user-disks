@@ -37,18 +37,6 @@ class StoreUserDisk extends FormRequest
      */
     public function getTypeValidationRules()
     {
-        switch ($this->input('type')) {
-            case 's3':
-                return [
-                    'key' => 'required',
-                    'secret' => 'required',
-                    'region' => 'required',
-                    'bucket' => 'required',
-                    'endpoint' => 'required|url',
-                    'use_path_style_endpoint' => 'boolean',
-                ];
-            default:
-                return [];
-        }
+        return UserDisk::getStoreValidationRules($this->input('type')) ?: [];
     }
 }

@@ -40,7 +40,7 @@ class UserDiskTest extends ModelTestCase
             'driver' => 'local',
             'key' => 'value',
         ];
-        config(['user_disks.disk_templates.test' => $template]);
+        config(['user_disks.templates.test' => $template]);
 
         $this->assertEquals($template, UserDisk::getConfigTemplate('test'));
     }
@@ -51,7 +51,7 @@ class UserDiskTest extends ModelTestCase
             'driver' => 'local',
             'key' => 'value',
         ];
-        config(['user_disks.disk_templates.test' => $template]);
+        config(['user_disks.templates.test' => $template]);
 
         $disk = UserDisk::factory()->make([
             'type' => 'test',
@@ -105,5 +105,79 @@ class UserDiskTest extends ModelTestCase
         $this->expectException(\TypeError::class);
         $this->model->type = 'test';
         $this->model->getConfig();
+    }
+
+    public function testGetPublicOptionsAttributeS3()
+    {
+        $disk = UserDisk::factory()->make([
+            'type' => 's3',
+            'options' => [
+                'key' => 'abc',
+                'secret' => 'efg',
+                'region' => 'us-east-1',
+                'bucket' => 'BiigleTest',
+                'endpoint' => 'https://s3.example.com',
+                'use_path_style_endpoint' => true,
+            ],
+        ]);
+
+        $expect = [
+            'region' => 'us-east-1',
+            'bucket' => 'BiigleTest',
+            'endpoint' => 'https://s3.example.com',
+            'use_path_style_endpoint' => true,
+        ];
+
+        $this->assertEquals($expect, $disk->public_options);
+    }
+
+    public function testGetStoreValidationRules()
+    {
+        $rules = [
+            'secret' => 'required',
+            'key' => 'required',
+        ];
+        config(['user_disks.store_validation.test' => $rules]);
+
+        $this->assertEquals($rules, UserDisk::getStoreValidationRules('test'));
+    }
+
+    public function testGetStoreValidationRulesS3()
+    {
+        $rules = [
+            'key' => 'required',
+            'secret' => 'required',
+            'region' => 'required',
+            'bucket' => 'required',
+            'endpoint' => 'required|url',
+            'use_path_style_endpoint' => 'boolean',
+        ];
+
+        $this->assertEquals($rules, UserDisk::getStoreValidationRules('s3'));
+    }
+
+    public function testGetUpdateValidationRules()
+    {
+        $rules = [
+            'secret' => 'required',
+            'key' => 'required',
+        ];
+        config(['user_disks.update_validation.test' => $rules]);
+
+        $this->assertEquals($rules, UserDisk::getUpdateValidationRules('test'));
+    }
+
+    public function testGetUpdateValidationRulesS3()
+    {
+        $rules = [
+            'key' => 'filled',
+            'secret' => 'filled',
+            'region' => 'filled',
+            'bucket' => 'filled',
+            'endpoint' => 'filled|url',
+            'use_path_style_endpoint' => 'boolean',
+        ];
+
+        $this->assertEquals($rules, UserDisk::getUpdateValidationRules('s3'));
     }
 }

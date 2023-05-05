@@ -45,18 +45,6 @@ class UpdateUserDisk extends FormRequest
      */
     public function getTypeValidationRules()
     {
-        switch ($this->disk->type) {
-            case 's3':
-                return [
-                    'key' => 'filled',
-                    'secret' => 'filled',
-                    'region' => 'filled',
-                    'bucket' => 'filled',
-                    'endpoint' => 'filled|url',
-                    'use_path_style_endpoint' => 'boolean',
-                ];
-            default:
-                return [];
-        }
+        return UserDisk::getUpdateValidationRules($this->disk->type);
     }
 }

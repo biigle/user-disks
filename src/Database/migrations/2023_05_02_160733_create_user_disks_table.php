@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamps();
             $table->string('name', 128)->unique();
 
-            // Each type must be present in the user_disks.disk_templates config, too.
+            // Each type must be present in the user_disks.templates config, too.
             $table->enum('type', [
                 's3',
                 // 'aos',
