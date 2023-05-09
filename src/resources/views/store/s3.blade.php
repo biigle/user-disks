@@ -44,7 +44,7 @@
 <div class="col-sm-6">
     <div class="form-group @error('endpoint') has-error @enderror">
         <label>Endpoint</label>
-        <input type="text" name="endpoint" required class="form-control" value="{{old('endpoint')}}" placeholder="s3.eu-central-1.amazonaws.com">
+        <input type="text" name="endpoint" required class="form-control" value="{{old('endpoint')}}" placeholder="https://s3.eu-central-1.amazonaws.com">
         @error('endpoint')
             <p class="help-block">{{$message}}</p>
         @enderror
