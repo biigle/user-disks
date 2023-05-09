@@ -3,7 +3,9 @@
 namespace Biigle\Modules\UserDisks;
 
 use Biigle\Services\Modules;
+use Biigle\User;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Storage;
 
@@ -45,6 +47,25 @@ class UserDisksServiceProvider extends ServiceProvider
             __DIR__.'/public/assets' => public_path('vendor/user-disks'),
         ], 'public');
 
+        $this->addStorageConfigResolver();
+        $this->overrideUseDiskGateAbility();
+    }
+
+    /**
+    * Register the service provider.
+    *
+    * @return  void
+    */
+    public function register()
+    {
+        $this->mergeConfigFrom(__DIR__.'/config/user_disks.php', 'user_disks');
+    }
+
+    /**
+     * Add the storage disk config resolver for 'disk-*' disks.
+     */
+    protected function addStorageConfigResolver()
+    {
         // This is used to resolve dynamic "disk-xxx" storage disks.
         Storage::addConfigResolver(function ($name) {
             $matches = [];
@@ -61,12 +82,20 @@ class UserDisksServiceProvider extends ServiceProvider
     }
 
     /**
-    * Register the service provider.
-    *
-    * @return  void
-    */
-    public function register()
+     * Add user disks logic to the 'use-disk' ability.
+     */
+    protected function overrideUseDiskGateAbility()
     {
-        $this->mergeConfigFrom(__DIR__.'/config/user_disks.php', 'user_disks');
+        // Override gate to allow own user disk.
+        $abilities = Gate::abilities();
+        $useDiskAbility = $abilities['use-disk'] ?? fn () => false;
+        Gate::define('use-disk', function (User $user, $disk) use ($useDiskAbility) {
+            $matches = [];
+            if (preg_match('/^disk-([0-9])+$/', $disk, $matches)) {
+                return $user->can('sudo') || UserDisk::where('user_id', $user->id)->where('id', $matches[1])->exists();
+            }
+
+            return $useDiskAbility($user, $disk);
+        });
     }
 }
