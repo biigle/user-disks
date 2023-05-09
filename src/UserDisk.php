@@ -95,6 +95,8 @@ class UserDisk extends Model
      */
     public function getConfig()
     {
-        return array_merge(static::getConfigTemplate($this->type), $this->options);
+        return array_merge(static::getConfigTemplate($this->type), $this->options, [
+            'read-only' => true,
+        ]);
     }
 }

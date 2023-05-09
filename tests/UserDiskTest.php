@@ -63,6 +63,30 @@ class UserDiskTest extends ModelTestCase
         $expect = [
             'driver' => 'local',
             'key' => 'abc',
+            'read-only' => true,
+        ];
+
+        $this->assertEquals($expect, $disk->getConfig());
+    }
+
+    public function testGetConfigReadOnly()
+    {
+        $template = [
+            'driver' => 'local',
+            'read-only' => false,
+        ];
+        config(['user_disks.templates.test' => $template]);
+
+        $disk = UserDisk::factory()->make([
+            'type' => 'test',
+            'options' => [
+                'read-only' => false,
+            ],
+        ]);
+
+        $expect = [
+            'driver' => 'local',
+            'read-only' => true,
         ];
 
         $this->assertEquals($expect, $disk->getConfig());
@@ -95,6 +119,7 @@ class UserDiskTest extends ModelTestCase
                 'connect_timeout' => 5,
             ],
             'throw' => true,
+            'read-only' => true,
         ];
 
         $this->assertEquals($expect, $disk->getConfig());
