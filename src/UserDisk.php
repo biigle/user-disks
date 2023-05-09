@@ -6,7 +6,6 @@ use Biigle\Modules\UserDisks\Database\Factories\UserDiskFactory;
 use Biigle\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 
 class UserDisk extends Model
 {
@@ -97,15 +96,5 @@ class UserDisk extends Model
     public function getConfig()
     {
         return array_merge(static::getConfigTemplate($this->type), $this->options);
-    }
-
-    /**
-     * Get the options without the secret options.
-     *
-     * @return array
-     */
-    public function getPublicOptionsAttribute()
-    {
-        return Arr::except($this->options, config("user_disks.secret_options.{$this->type}"));
     }
 }

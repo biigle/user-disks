@@ -2,6 +2,14 @@
 
 return [
     /*
+     | Each storage disk type (key must match the enum in the database) with it's full
+     | name as value.
+     */
+    'types' => [
+        's3' => 'S3',
+    ],
+
+    /*
     | The default configuration arrays for filesystem disks that are filled differently
     | by each user disk. Each UserDisk type enum in the database must have an entry here
     | withthe same key as the type.
@@ -35,7 +43,7 @@ return [
             'secret' => 'required',
             'region' => 'required',
             'bucket' => 'required',
-            'endpoint' => 'required|url',
+            'endpoint' => 'required',
             'use_path_style_endpoint' => 'boolean',
         ],
     ],
@@ -50,18 +58,8 @@ return [
             'secret' => 'filled',
             'region' => 'filled',
             'bucket' => 'filled',
-            'endpoint' => 'filled|url',
+            'endpoint' => 'filled',
             'use_path_style_endpoint' => 'boolean',
-        ],
-    ],
-
-    /*
-     | The options of each disk type that should never be shown.
-     */
-    'secret_options' => [
-        's3' => [
-            'key',
-            'secret',
         ],
     ],
 ];

@@ -14,6 +14,9 @@
          "email": "martin@cebitec.uni-bielefeld.de"
       }
     ],
+    "require": {
+        "league/flysystem-aws-s3-v3": "^3.12"
+    },
     "autoload": {
       "psr-4": {
          "Biigle\\Modules\\UserDisks\\": "src"

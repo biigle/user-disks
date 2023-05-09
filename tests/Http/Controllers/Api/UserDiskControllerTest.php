@@ -99,7 +99,7 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->be($disk->user);
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-                'name' => '',
+                'use_path_style_endpoint' => 'abc',
             ])
             ->assertStatus(422);
 
@@ -127,6 +127,34 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals('s3', $disk->type);
         $this->assertEquals('cba', $disk->name);
         $this->assertEquals($expect, $disk->options);
+    }
+
+    public function testUpdateEmpty()
+    {
+        $options = [
+            'key' => 'def',
+            'secret' => 'ghi',
+            'region' => 'jkl',
+            'bucket' => 'mno',
+            'endpoint' => 'https://example.com',
+            'use_path_style_endpoint' => false,
+        ];
+        $disk = UserDisk::factory()->create([
+            'type' => 's3',
+            'name' => 'abc',
+            'options' => $options,
+        ]);
+        $this->be($disk->user);
+
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'name' => 'cba',
+                'key' => '',
+                'secret' => '',
+            ])
+            ->assertStatus(200);
+        $disk->refresh();
+        $this->assertEquals('cba', $disk->name);
+        $this->assertEquals($options, $disk->options);
     }
 
     public function testDestroy()

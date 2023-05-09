@@ -47,4 +47,15 @@ class UpdateUserDisk extends FormRequest
     {
         return UserDisk::getUpdateValidationRules($this->disk->type);
     }
+
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation()
+    {
+        // Remove empty fields.
+        $this->replace(array_filter($this->all()));
+    }
 }

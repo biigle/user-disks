@@ -36,12 +36,20 @@ class UserDiskController extends Controller
     {
         $optionKeys = array_keys($request->getTypeValidationRules());
 
-        return UserDisk::create([
+        $disk = UserDisk::create([
             'name' => $request->input('name'),
             'type' => $request->input('type'),
             'user_id' => $request->user()->id,
             'options' => $request->safe()->only($optionKeys),
         ]);
+
+        if ($this->isAutomatedRequest()) {
+            return $disk;
+        }
+
+        return $this->fuzzyRedirect('settings-storage-disks')
+            ->with('message', 'Storage disk created')
+            ->with('messageType', 'success');
     }
 
     /**
@@ -78,6 +86,12 @@ class UserDiskController extends Controller
         );
 
         $request->disk->save();
+
+        if (!$this->isAutomatedRequest()) {
+            return $this->fuzzyRedirect()
+                ->with('message', 'Storage disk updated')
+                ->with('messageType', 'success');
+        }
     }
 
     /**
@@ -99,5 +113,11 @@ class UserDiskController extends Controller
         $disk = UserDisk::findOrFail($id);
         $this->authorize('destroy', $disk);
         $disk->delete();
+
+        if (!$this->isAutomatedRequest()) {
+            return $this->fuzzyRedirect('settings-storage-disks')
+                ->with('message', 'Storage disk deleted')
+                ->with('messageType', 'success');
+        }
     }
 }

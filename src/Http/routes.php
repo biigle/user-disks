@@ -19,4 +19,14 @@ $router->group([
         'as' => 'settings-storage-disks',
         'uses' => 'UserDiskController@index',
     ]);
+
+    $router->get('settings/storage-disks/create', [
+        'as' => 'settings-create-storage-disks',
+        'uses' => 'UserDiskController@store',
+    ]);
+
+    $router->get('settings/storage-disks/{id}', [
+        'as' => 'settings-update-storage-disks',
+        'uses' => 'UserDiskController@update',
+    ]);
 });
