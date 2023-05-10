@@ -1,1 +1,7 @@
-//
+.user-disk-item .btn {
+    visibility: hidden;
+}
+
+.user-disk-item:hover .btn {
+    visibility: visible;
+}

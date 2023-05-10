@@ -2,6 +2,10 @@
 
 @section('title', 'Your Storage Disks')
 
+@push('styles')
+    <link href="{{ cachebust_asset('vendor/user-disks/styles/main.css') }}" rel="stylesheet">
+@endpush
+
 @section('settings-content')
 <h2>Storage Disks</h2>
 <p>
@@ -10,11 +14,11 @@
 
 <div class="list-group">
     @foreach ($disks as $disk)
-        <div class="list-group-item">
-            <h4 class="list-group-item-heading clearfix">
+        <div class="list-group-item user-disk-item clearfix">
+            <a href="{{route('settings-update-storage-disks', $disk->id)}}" class="pull-right btn btn-sm btn-default" title="Edit {{$disk->name}}"><i class="fa fa-pen"></i></a>
+            <h4 class="list-group-item-heading">
                 <small class="label label-default" title="Storage disk type {{strtoupper($disk->type)}}">{{strtoupper($disk->type)}}</small>
                 {{$disk->name}}
-                <a href="{{route('settings-update-storage-disks', $disk->id)}}" class="pull-right btn btn-sm btn-default" title="Edit {{$disk->name}}"><i class="fa fa-pen"></i></a>
             </h4>
             <div class="list-group-item-text text-muted">
                 Created {{$disk->created_at->diffForHumans()}}
