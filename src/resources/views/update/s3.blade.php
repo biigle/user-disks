@@ -50,13 +50,23 @@
         @enderror
     </div>
 </div>
-<div class="col-xs-12">
-    <div class="checkbox">
+<div class="col-xs-6">
+    <div class="radio">
         <label>
-            <input type="checkbox" name="use_path_style_endpoint" @checked(old('use_path_style_endpoint', $disk->options['use_path_style_endpoint'] ?? false))> Use path style endpoint
+            <input type="radio" name="use_path_style_endpoint" @checked(!old('use_path_style_endpoint', $disk->options['use_path_style_endpoint'] ?? false)) value="0"> Subdomain endpoint
         </label>
         <p class="help-block">
-            Enable if the URL is <code>s3.example.com/BUCKETNAME</code> instead of <code>BUCKETNAME.s3.example.com</code>.
+            E.g.: <code>BUCKETNAME.s3.example.com</code>
+        </p>
+    </div>
+</div>
+<div class="col-xs-6">
+    <div class="radio">
+        <label>
+            <input type="radio" name="use_path_style_endpoint" @checked(old('use_path_style_endpoint', $disk->options['use_path_style_endpoint'] ?? false)) value="1"> Path endpoint
+        </label>
+        <p class="help-block">
+            E.g.: <code>s3.example.com/BUCKETNAME</code>
         </p>
     </div>
 </div>

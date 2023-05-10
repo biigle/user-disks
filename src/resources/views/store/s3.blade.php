@@ -7,13 +7,6 @@
         @enderror
     </div>
 </div>
-<div class="col-xs-12">
-    <div class="panel panel-warning">
-        <div class="panel-body text-warning">
-            Your access credentials are stored in the BIIGLE database. Please configure the credentials to have only the minimum required permissions.
-        </div>
-    </div>
-</div>
 <div class="col-sm-6">
     <div class="form-group @error('key') has-error @enderror">
         <label>Access Key</label>
@@ -50,13 +43,43 @@
         @enderror
     </div>
 </div>
+<div class="col-xs-6">
+    <div class="radio">
+        <label>
+            <input type="radio" name="use_path_style_endpoint" @checked(!old('use_path_style_endpoint')) value="0"> Subdomain endpoint
+        </label>
+        <p class="help-block">
+            E.g.: <code>BUCKETNAME.s3.example.com</code>
+        </p>
+    </div>
+</div>
+<div class="col-xs-6">
+    <div class="radio">
+        <label>
+            <input type="radio" name="use_path_style_endpoint" @checked(old('use_path_style_endpoint')) value="1"> Path endpoint
+        </label>
+        <p class="help-block">
+            E.g.: <code>s3.example.com/BUCKETNAME</code>
+        </p>
+    </div>
+</div>
 <div class="col-xs-12">
     <div class="checkbox">
         <label>
-            <input type="checkbox" name="use_path_style_endpoint" @checked(old('use_path_style_endpoint')) value="1"> Use path style endpoint
+            <input type="checkbox" name="know" @checked(old('know')) value="1" required> I have configured the credentials to have only the minimum required permissions.
         </label>
         <p class="help-block">
-            Enable if the URL is <code>s3.example.com/BUCKETNAME</code> instead of <code>BUCKETNAME.s3.example.com</code>.
+            The access credentials are stored in the BIIGLE database and minimum permissions reduce risk in case of exposure.
+        </p>
+    </div>
+</div>
+<div class="col-xs-12">
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" name="cors" @checked(old('cors')) value="1" required> I have configured the bucket rules for cross-origin resource sharing (CORS)
+        </label>
+        <p class="help-block">
+            The CORS rules should allow the <code>{{url('/')}}</code> origin, <code>GET</code> (and <code>OPTIONS</code>) method and <code>x-requested-with</code> header.
         </p>
     </div>
 </div>

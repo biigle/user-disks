@@ -34,6 +34,25 @@ class UserDiskControllerTest extends ApiTestCase
             ->assertStatus(422);
     }
 
+    public function testStoreBoolean()
+    {
+        $this->beUser();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 's3',
+                'key' => 'abc',
+                'secret' => 'abc',
+                'region' => 'abc',
+                'bucket' => 'abc',
+                'endpoint' => 'http://example.com',
+                'use_path_style_endpoint' => '1',
+            ])
+            ->assertStatus(201);
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertTrue($disk->options['use_path_style_endpoint']);
+    }
+
     public function testStoreS3()
     {
         $this->beUser();
@@ -80,6 +99,26 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->be($disk->user);
         $this->putJson("/api/v1/user-disks/{$disk->id}")->assertStatus(200);
+    }
+
+    public function testUpdateBoolean()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 's3',
+            'name' => 'abc',
+            'options' => [
+                'use_path_style_endpoint' => false,
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'use_path_style_endpoint' => '1',
+            ])
+            ->assertStatus(200);
+
+        $disk->refresh();
+        $this->assertTrue($disk->options['use_path_style_endpoint']);
     }
 
     public function testUpdateS3()
@@ -148,13 +187,14 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
                 'name' => 'cba',
-                'key' => '',
+                'key' => '0',
                 'secret' => '',
             ])
             ->assertStatus(200);
         $disk->refresh();
         $this->assertEquals('cba', $disk->name);
-        $this->assertEquals($options, $disk->options);
+        $this->assertEquals('0', $disk->options['key']);
+        $this->assertEquals('ghi', $disk->options['secret']);
     }
 
     public function testDestroy()

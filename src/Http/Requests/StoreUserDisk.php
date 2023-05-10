@@ -39,4 +39,23 @@ class StoreUserDisk extends FormRequest
     {
         return UserDisk::getStoreValidationRules($this->input('type')) ?: [];
     }
+
+    /**
+     * Get the storage disk options from the input of this request.
+     *
+     * @return array
+     */
+    public function getDiskOptions()
+    {
+        $optionKeys = array_keys($this->getTypeValidationRules());
+        $options = $this->safe()->only($optionKeys);
+
+        foreach ($this->rules() as $key => $rules) {
+            if (in_array('boolean', explode('|', $rules)) && array_key_exists($key, $options)) {
+                $options[$key] = boolval($options[$key]);
+            }
+        }
+
+        return $options;
+    }
 }

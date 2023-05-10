@@ -56,6 +56,25 @@ class UpdateUserDisk extends FormRequest
     protected function prepareForValidation()
     {
         // Remove empty fields.
-        $this->replace(array_filter($this->all()));
+        $this->replace(array_filter($this->all(), fn ($value) => !is_null($value)));
+    }
+
+    /**
+     * Get the storage disk options from the input of this request.
+     *
+     * @return array
+     */
+    public function getDiskOptions()
+    {
+        $optionKeys = array_keys($this->getTypeValidationRules());
+        $options = $this->safe()->only($optionKeys);
+
+        foreach ($this->rules() as $key => $rules) {
+            if (in_array('boolean', explode('|', $rules)) && array_key_exists($key, $options)) {
+                $options[$key] = boolval($options[$key]);
+            }
+        }
+
+        return $options;
     }
 }

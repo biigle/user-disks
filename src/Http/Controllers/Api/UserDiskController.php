@@ -34,13 +34,11 @@ class UserDiskController extends Controller
      */
     public function store(StoreUserDisk $request)
     {
-        $optionKeys = array_keys($request->getTypeValidationRules());
-
         $disk = UserDisk::create([
             'name' => $request->input('name'),
             'type' => $request->input('type'),
             'user_id' => $request->user()->id,
-            'options' => $request->safe()->only($optionKeys),
+            'options' => $request->getDiskOptions(),
         ]);
 
         if ($this->isAutomatedRequest()) {
@@ -77,12 +75,10 @@ class UserDiskController extends Controller
      */
     public function update(UpdateUserDisk $request)
     {
-        $optionKeys = array_keys($request->getTypeValidationRules());
-
         $request->disk->name = $request->input('name', $request->disk->name);
         $request->disk->options = array_merge(
             $request->disk->options,
-            $request->safe()->only($optionKeys),
+            $request->getDiskOptions()
         );
 
         $request->disk->save();
