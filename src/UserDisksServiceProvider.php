@@ -91,7 +91,7 @@ class UserDisksServiceProvider extends ServiceProvider
         $useDiskAbility = $abilities['use-disk'] ?? fn () => false;
         Gate::define('use-disk', function (User $user, $disk) use ($useDiskAbility) {
             $matches = [];
-            if (preg_match('/^disk-([0-9])+$/', $disk, $matches)) {
+            if (preg_match('/^disk-([0-9]+)$/', $disk, $matches)) {
                 return $user->can('sudo') || UserDisk::where('user_id', $user->id)->where('id', $matches[1])->exists();
             }
 
