@@ -4,6 +4,7 @@ namespace Biigle\Modules\UserDisks\Http\Controllers\Views;
 
 use Biigle\Http\Controllers\Views\Controller;
 use Biigle\Modules\UserDisks\UserDisk;
+use Biigle\Volume;
 use Illuminate\Http\Request;
 
 class UserDiskController extends Controller
@@ -57,8 +58,11 @@ class UserDiskController extends Controller
         $disk = UserDisk::findOrFail($id);
         $this->authorize('update', $disk);
 
+        $dependentVolumes = Volume::where('url', 'like', "disk-{$disk->id}://%")->count();
+
         return view('user-disks::update', [
             'disk' => $disk,
+            'dependentVolumes' => $dependentVolumes,
         ]);
     }
 }

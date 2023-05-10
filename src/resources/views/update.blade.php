@@ -8,7 +8,16 @@
         <div class="col-sm-8 col-sm-offset-2 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
             <h2>Edit storage disk {{$disk->name}}</h2>
 
-            <form id="delete-form" action="{{url("api/v1/user-disks/{$disk->id}")}}" method="POST" onsubmit="return prompt('Please confirm the deletion of the storage disk by typing the name \'{{$disk->name}}\'.')?.toLowerCase() === '{{strtolower($disk->name)}}'">
+            <form
+                id="delete-form"
+                action="{{url("api/v1/user-disks/{$disk->id}")}}"
+                method="POST"
+                @if ($dependentVolumes > 0)
+                    onsubmit="return prompt('{{$dependentVolumes}} volume(s) still use this storage disk! Please type the number to confirm the deletion of the storage disk.') === '{{$dependentVolumes}}'"
+                @else
+                    onsubmit="return confirm('Are you sure that you want to delete the storage disk \'{{$disk->name}}\'?')"
+                @endif
+                >
                 @csrf
                 @method('DELETE')
             </form>
