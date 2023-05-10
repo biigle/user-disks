@@ -17,8 +17,7 @@ mix.options({processCssUrls: false});
 
 mix.setPublicPath('src/public');
 
-mix.js('src/resources/assets/js/main.js', 'assets/scripts').vue()
-    .sass('src/resources/assets/sass/main.scss', 'assets/styles')
+mix.sass('src/resources/assets/sass/main.scss', 'assets/styles')
     .publish({
         provider: 'Biigle\\Modules\\UserDisks\\UserDisksServiceProvider',
         tag: 'public',
