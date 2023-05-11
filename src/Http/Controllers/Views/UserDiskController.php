@@ -23,6 +23,7 @@ class UserDiskController extends Controller
 
         return view('user-disks::index', [
             'disks' => $disks,
+            'now' => now(),
         ]);
     }
 

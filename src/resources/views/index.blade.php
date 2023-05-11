@@ -28,7 +28,11 @@
                 <small class="label label-default" title="Storage disk type {{strtoupper($disk->type)}}">{{strtoupper($disk->type)}}</small>
                 {{$disk->name}}
             </h4>
-            @if ($disk->isAboutToExpire())
+            @if ($disk->expires_at < $now)
+                <div class="list-group-item-text text-danger">
+                    Expired <span title="{{$disk->expires_at}}">{{$disk->expires_at->diffForHumans()}}</span>!
+                </div>
+            @elseif ($disk->isAboutToExpire())
                 <div class="list-group-item-text text-warning">
                     Expires <span title="{{$disk->expires_at}}">{{$disk->expires_at->diffForHumans()}}</span>
                 </div>
