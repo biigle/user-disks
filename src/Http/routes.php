@@ -15,18 +15,18 @@ $router->group([
     'namespace' => 'Views',
     'middleware' => ['web', 'auth'],
 ], function ($router) {
-    $router->get('settings/storage-disks', [
-        'as' => 'settings-storage-disks',
+    $router->get('storage-disks', [
+        'as' => 'storage-disks',
         'uses' => 'UserDiskController@index',
     ]);
 
-    $router->get('settings/storage-disks/create', [
-        'as' => 'settings-create-storage-disks',
+    $router->get('storage-disks/create', [
+        'as' => 'create-storage-disks',
         'uses' => 'UserDiskController@store',
     ]);
 
-    $router->get('settings/storage-disks/{id}', [
-        'as' => 'settings-update-storage-disks',
+    $router->get('storage-disks/{id}', [
+        'as' => 'update-storage-disks',
         'uses' => 'UserDiskController@update',
     ]);
 });

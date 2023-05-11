@@ -56,7 +56,7 @@
                                     Update disk
                                 </button>
                             </span>
-                            <a href="{{route('settings-storage-disks')}}" class="btn btn-default">Back</a>
+                            <a href="{{route('storage-disks')}}" class="btn btn-default">Back</a>
                         </div>
                     </div>
                 </div>

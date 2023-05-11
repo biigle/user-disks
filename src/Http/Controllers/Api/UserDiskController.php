@@ -45,7 +45,7 @@ class UserDiskController extends Controller
             return $disk;
         }
 
-        return $this->fuzzyRedirect('settings-storage-disks')
+        return $this->fuzzyRedirect('storage-disks')
             ->with('message', 'Storage disk created')
             ->with('messageType', 'success');
     }
@@ -111,7 +111,7 @@ class UserDiskController extends Controller
         $disk->delete();
 
         if (!$this->isAutomatedRequest()) {
-            return $this->fuzzyRedirect('settings-storage-disks')
+            return $this->fuzzyRedirect('storage-disks')
                 ->with('message', 'Storage disk deleted')
                 ->with('messageType', 'success');
         }

@@ -2,6 +2,7 @@
 
 namespace Biigle\Modules\UserDisks;
 
+use Biigle\Modules\UserStorage\UserStorageServiceProvider;
 use Biigle\Services\Modules;
 use Biigle\User;
 use Illuminate\Routing\Router;
@@ -33,7 +34,7 @@ class UserDisksServiceProvider extends ServiceProvider
 
         $modules->register('user-disks', [
             'viewMixins' => [
-                'userSettingsMenu',
+                'storageMenu',
             ],
             'controllerMixins' => [
                 //
@@ -42,6 +43,12 @@ class UserDisksServiceProvider extends ServiceProvider
                //__DIR__.'/Http/Controllers/Api/',
             ],
         ]);
+
+        // The user storage module has precedence. Only add this if the module is not
+        // installed.
+        if (!class_exists(UserStorageServiceProvider::class)) {
+            $modules->registerViewMixin('user-disks', 'navbarMenuItem');
+        }
 
         $this->publishes([
             __DIR__.'/public/assets' => public_path('vendor/user-disks'),
