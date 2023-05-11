@@ -5,6 +5,7 @@ namespace Biigle\Modules\UserDisks\Http\Controllers\Api;
 use Biigle\Http\Controllers\Api\Controller;
 use Biigle\Modules\UserDisks\Http\Requests\StoreUserDisk;
 use Biigle\Modules\UserDisks\Http\Requests\UpdateUserDisk;
+use Biigle\Modules\UserDisks\Http\Requests\ExtendUserDisk;
 use Biigle\Modules\UserDisks\UserDisk;
 
 class UserDiskController extends Controller
@@ -87,6 +88,31 @@ class UserDiskController extends Controller
         if (!$this->isAutomatedRequest()) {
             return $this->fuzzyRedirect()
                 ->with('message', 'Storage disk updated')
+                ->with('messageType', 'success');
+        }
+    }
+
+    /**
+     * Extend a storage disk
+     *
+     * @api {post} storage-disks/:id/extend Extend a storage disk
+     * @apiGroup StorageDisks
+     * @apiName ExtendStorageDisk
+     * @apiPermission storageDiskOwner
+     *
+     * @apiParam {Number} id The storage disk ID.
+     *
+     * @param ExtendUserDisk $request
+     * @return \Illuminate\Http\Response
+     */
+    public function extend(ExtendUserDisk $request)
+    {
+        $months = config('user_disks.expires_months');
+        $request->disk->update(['expires_at' => now()->addMonths($months)]);
+
+        if (!$this->isAutomatedRequest()) {
+            return $this->fuzzyRedirect()
+                ->with('message', 'Storage disk extended')
                 ->with('messageType', 'success');
         }
     }

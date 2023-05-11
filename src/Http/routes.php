@@ -9,6 +9,8 @@ $router->group([
         'only' => ['store', 'update', 'destroy'],
         'parameters' => ['user-disks' => 'id'],
     ]);
+
+    $router->post('user-disks/{id}/extend', 'UserDiskController@extend');
 });
 
 $router->group([

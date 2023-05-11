@@ -15,14 +15,28 @@
 <div class="list-group">
     @foreach ($disks as $disk)
         <div class="list-group-item user-disk-item clearfix">
-            <a href="{{route('update-storage-disks', $disk->id)}}" class="pull-right btn btn-sm btn-default" title="Edit {{$disk->name}}"><i class="fa fa-pen"></i></a>
+            <span class="pull-right">
+                <a href="{{route('update-storage-disks', $disk->id)}}" class="btn btn-sm btn-default user-disk-edit" title="Edit {{$disk->name}}"><i class="fa fa-pen"></i></a>
+                @if ($disk->isAboutToExpire())
+                    <form class="inline-block-form" action="{{url("api/v1/user-disks/{$disk->id}/extend")}}" method="POST">
+                        @csrf
+                        <button class="btn btn-default btn-sm" title="Extend this storage disk"><i class="fa fa-redo"></i></button>
+                    </form>
+                @endif
+            </span>
             <h4 class="list-group-item-heading">
                 <small class="label label-default" title="Storage disk type {{strtoupper($disk->type)}}">{{strtoupper($disk->type)}}</small>
                 {{$disk->name}}
             </h4>
-            <div class="list-group-item-text text-muted">
-                Created {{$disk->created_at->diffForHumans()}}
-            </div>
+            @if ($disk->isAboutToExpire())
+                <div class="list-group-item-text text-warning">
+                    Expires <span title="{{$disk->expires_at}}">{{$disk->expires_at->diffForHumans()}}</span>
+                </div>
+            @else
+                <div class="list-group-item-text text-muted">
+                    Created <span title="{{$disk->created_at}}">{{$disk->created_at->diffForHumans()}}</span>
+                </div>
+            @endif
         </div>
     @endforeach
     @can('create', \Biigle\Modules\UserDisks\UserDisk::class)

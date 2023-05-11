@@ -163,4 +163,13 @@ class UserDiskTest extends ModelTestCase
     {
         $this->assertNotEmpty(UserDisk::getUpdateValidationRules('s3'));
     }
+
+    public function testIsAboutToExpire()
+    {
+        config(['user_disks.about_to_expire_weeks' => 4]);
+        $this->model->expires_at = now()->addWeeks(5);
+        $this->assertFalse($this->model->isAboutToExpire());
+        $this->model->expires_at = now()->addWeeks(3);
+        $this->assertTrue($this->model->isAboutToExpire());
+    }
 }

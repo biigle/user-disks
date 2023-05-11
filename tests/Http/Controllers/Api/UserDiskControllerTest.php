@@ -198,6 +198,40 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals('ghi', $disk->options['secret']);
     }
 
+    public function testExtend()
+    {
+        config(['user_disks.about_to_expire_weeks' => 4]);
+        $expires = now()->addWeeks(3);
+        $disk = UserDisk::factory()->create([
+            'expires_at' => $expires,
+        ]);
+        $id = $disk->id;
+
+        $this->doTestApiRoute('POST', "/api/v1/user-disks/{$id}/extend");
+
+        $this->beGuest();
+        $this->postJson("/api/v1/user-disks/{$id}/extend")->assertStatus(403);
+
+        $this->be($disk->user);
+        $this->postJson("/api/v1/user-disks/{$id}/extend")
+            ->assertStatus(200);
+
+        $disk->refresh();
+        $this->assertTrue($disk->expires_at > $expires);
+    }
+
+    public function testExtendNotAboutToExpire()
+    {
+        config(['user_disks.about_to_expire_weeks' => 4]);
+        $disk = UserDisk::factory()->create([
+            'expires_at' => now()->addWeeks(5),
+        ]);
+        $id = $disk->id;
+
+        $this->be($disk->user);
+        $this->postJson("/api/v1/user-disks/{$id}/extend")->assertStatus(422);
+    }
+
     public function testDestroy()
     {
         $disk = UserDisk::factory()->create();

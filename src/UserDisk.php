@@ -71,6 +71,16 @@ class UserDisk extends Model
     }
 
     /**
+     * Check whether the disk is about to expire.
+     *
+     * @return boolean
+     */
+    public function isAboutToExpire()
+    {
+        return $this->expires_at < now()->addWeeks(config('user_disks.about_to_expire_weeks'));
+    }
+
+    /**
      * Create a new factory instance for the model.
      *
      * @return \Illuminate\Database\Eloquent\Factories\Factory
