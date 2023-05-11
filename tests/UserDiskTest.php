@@ -172,4 +172,12 @@ class UserDiskTest extends ModelTestCase
         $this->model->expires_at = now()->addWeeks(3);
         $this->assertTrue($this->model->isAboutToExpire());
     }
+
+    public function testExtend()
+    {
+        config(['user_disks.expires_months' => 2]);
+        $time = $this->model->expires_at;
+        $this->model->extend();
+        $this->assertNotEquals($time->toDateTimeString(), $this->model->expires_at->toDateTimeString());
+    }
 }

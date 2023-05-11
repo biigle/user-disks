@@ -64,9 +64,9 @@ return [
     ],
 
     /*
-     | Number of months until a UserDisk expires.
+     | Number of months until a UserDisk expires after the last access.
      */
-    'expires_months' => env('USER_DISKS_EXPIRES_MONTHS', 12),
+    'expires_months' => env('USER_DISKS_EXPIRES_MONTHS', 6),
 
     /*
     | Number of weeks before expiration when a UserDisk is classified as "about

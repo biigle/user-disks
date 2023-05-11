@@ -111,4 +111,12 @@ class UserDisk extends Model
             'read-only' => true,
         ]);
     }
+
+    /**
+     * Extend the expiration date of the disk.
+     */
+    public function extend()
+    {
+        $this->update(['expires_at' => now()->addMonths(config('user_disks.expires_months'))]);
+    }
 }

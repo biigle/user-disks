@@ -60,4 +60,14 @@ class UserDisksServiceProviderTest extends TestCase
         $disk = Storage::disk("disk-{$userDisk->id}");
         $this->assertSame('abc', $disk->get('a/b.jpg'));
     }
+
+    public function testUpdateExpiresAtOnAccess()
+    {
+        config(['user_disks.expires_months' => 2]);
+        $time = now();
+        $disk = UserDisk::factory()->create(['expires_at' => $time]);
+        Storage::disk("disk-{$disk->id}");
+        $disk->refresh();
+        $this->assertNotEquals($time->toDateTimeString(), $disk->expires_at->toDateTimeString());
+    }
 }

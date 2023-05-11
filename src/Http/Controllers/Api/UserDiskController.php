@@ -107,8 +107,7 @@ class UserDiskController extends Controller
      */
     public function extend(ExtendUserDisk $request)
     {
-        $months = config('user_disks.expires_months');
-        $request->disk->update(['expires_at' => now()->addMonths($months)]);
+        $request->disk->extend();
 
         if (!$this->isAutomatedRequest()) {
             return $this->fuzzyRedirect()

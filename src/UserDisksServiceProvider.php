@@ -39,6 +39,7 @@ class UserDisksServiceProvider extends ServiceProvider
         $modules->register('user-disks', [
             'viewMixins' => [
                 'storageMenu',
+                'filesManual',
             ],
             'controllerMixins' => [
                 //
@@ -107,6 +108,9 @@ class UserDisksServiceProvider extends ServiceProvider
                 $disk = UserDisk::find($matches[1]);
 
                 if ($disk) {
+                    // Disks are automatically extended each time they are used.
+                    $disk->extend();
+
                     return $disk->getConfig();
                 }
             }
