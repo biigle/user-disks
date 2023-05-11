@@ -9,7 +9,7 @@
 @section('storage-content')
 <h2>Your storage disks</h2>
 <p>
-    Storage disks allow you to use files from remote locations (such as cloud storage services) in BIIGLE volumes.
+    Use files from external cloud storage services for new volumes.
 </p>
 
 <div class="list-group">
