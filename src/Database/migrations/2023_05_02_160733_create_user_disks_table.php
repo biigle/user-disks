@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('user_disks', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->timestamp('expires_at')->index();
             $table->string('name', 128)->unique();
 
             // Each type must be present in the user_disks.templates config, too.

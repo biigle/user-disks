@@ -21,6 +21,7 @@ class UserDisk extends Model
         'type',
         'user_id',
         'options',
+        'expires_at',
     ];
 
     /**
@@ -30,6 +31,7 @@ class UserDisk extends Model
      */
     protected $casts = [
         'options' => 'encrypted:array',
+        'expires_at' => 'datetime',
     ];
 
     /**

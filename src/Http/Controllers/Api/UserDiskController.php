@@ -38,6 +38,7 @@ class UserDiskController extends Controller
             'name' => $request->input('name'),
             'type' => $request->input('type'),
             'user_id' => $request->user()->id,
+            'expires_at' => now()->addMonths(config('user_disks.expires_months')),
             'options' => $request->getDiskOptions(),
         ]);
 

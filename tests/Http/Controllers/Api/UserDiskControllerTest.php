@@ -78,6 +78,7 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertNotNull($disk);
         $this->assertEquals('my disk', $disk->name);
         $this->assertEquals('s3', $disk->type);
+        $this->assertNotNull($disk->expires_at);
         $expect = [
             'key' => 'abc',
             'secret' => 'abc',

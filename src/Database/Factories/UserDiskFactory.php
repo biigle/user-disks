@@ -27,6 +27,7 @@ class UserDiskFactory extends Factory
             'options' => [],
             'type' => 's3',
             'user_id' => User::factory(),
+            'expires_at' => now()->addMonth(),
         ];
     }
 }

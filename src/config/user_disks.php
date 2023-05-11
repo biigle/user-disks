@@ -62,4 +62,36 @@ return [
             'use_path_style_endpoint' => 'boolean',
         ],
     ],
+
+    /*
+     | Number of months until a UserDisk expires.
+     */
+    'expires_months' => env('USER_DISKS_EXPIRES_MONTHS', 12),
+
+    /*
+    | Number of weeks before expiration when a UserDisk is classified as "about
+    | to expire".
+    */
+    'about_to_expire_weeks' => env('USER_DISKS_ABOUT_TO_EXPIRE_WEEKS', 4),
+
+    /*
+    | Number of weeks to wait after expiration before a UserDisk is actually
+    | deleted.
+    */
+    'delete_grace_period_weeks' => env('USER_DISKS_DELETE_GRACE_PERIOD_WEEKS', 1),
+
+    'notifications' => [
+        /*
+        | Set the way notifications for user disks are sent by default.
+        |
+        | Available are: "email", "web"
+        */
+        'default_settings' => 'email',
+
+        /*
+        | Choose whether users are allowed to change their notification settings.
+        | If set to false the default settings will be used for all users.
+        */
+        'allow_user_settings' => true,
+    ],
 ];

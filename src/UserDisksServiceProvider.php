@@ -2,9 +2,13 @@
 
 namespace Biigle\Modules\UserDisks;
 
+use Biigle\Http\Requests\UpdateUserSettings;
+use Biigle\Modules\UserDisks\Console\Commands\CheckExpiredUserDisks;
+use Biigle\Modules\UserDisks\Console\Commands\PruneExpiredUserDisks;
 use Biigle\Modules\UserStorage\UserStorageServiceProvider;
 use Biigle\Services\Modules;
 use Biigle\User;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -56,6 +60,29 @@ class UserDisksServiceProvider extends ServiceProvider
 
         $this->addStorageConfigResolver();
         $this->overrideUseDiskGateAbility();
+
+        if (config('user_disks.notifications.allow_user_settings')) {
+            $modules->registerViewMixin('user-disks', 'settings.notifications');
+            UpdateUserSettings::addRule('storage_disk_notifications', 'filled|in:email,web');
+        }
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                CheckExpiredUserDisks::class,
+                PruneExpiredUserDisks::class,
+            ]);
+
+            $this->app->booted(function () {
+                $schedule = app(Schedule::class);
+                $schedule->command(CheckExpiredUserDisks::class)
+                    ->daily()
+                    ->onOneServer();
+
+                $schedule->command(PruneExpiredUserDisks::class)
+                    ->daily()
+                    ->onOneServer();
+            });
+        }
     }
 
     /**
