@@ -48,6 +48,7 @@ jobs:
         composer require --no-ansi --no-interaction --no-scripts --ignore-platform-reqs ${GITHUB_REPOSITORY}
         mkdir -p tests/php/Modules
         ln -sf ../../../vendor/${GITHUB_REPOSITORY}/tests tests/php/Modules/${MODULE_NAME}
+        php artisan package:discover
       working-directory: ../core
 
     - name: Fetch base images
