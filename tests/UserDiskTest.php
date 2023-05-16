@@ -99,10 +99,8 @@ class UserDiskTest extends ModelTestCase
             'options' => [
                 'key' => 'abc',
                 'secret' => 'efg',
-                'region' => 'us-east-1',
-                'bucket' => 'BiigleTest',
-                'endpoint' => 'https://s3.example.com',
-                'use_path_style_endpoint' => true,
+                'bucket' => 'bucket',
+                'endpoint' => 'https://bucket.s3.example.com',
             ],
         ]);
 
@@ -110,16 +108,16 @@ class UserDiskTest extends ModelTestCase
             'driver' => 's3',
             'key' => 'abc',
             'secret' => 'efg',
-            'region' => 'us-east-1',
-            'bucket' => 'BiigleTest',
-            'endpoint' => 'https://s3.example.com',
-            'use_path_style_endpoint' => true,
+            'bucket' => 'bucket',
+            'endpoint' => 'https://bucket.s3.example.com',
             'stream_reads' => true,
             'http' => [
                 'connect_timeout' => 5,
             ],
             'throw' => true,
             'read-only' => true,
+            'bucket_endpoint' => true,
+            'region' => '',
         ];
 
         $this->assertEquals($expect, $disk->getConfig());

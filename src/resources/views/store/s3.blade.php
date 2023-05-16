@@ -1,10 +1,22 @@
 <div class="col-xs-12">
     <div class="form-group @error('bucket') has-error @enderror">
-        <label>Bucket Name</label>
+        <label>Bucket name</label>
         <input type="text" name="bucket" required class="form-control" value="{{old('bucket')}}" placeholder="MyBucket">
         @error('bucket')
             <p class="help-block">{{$message}}</p>
         @enderror
+    </div>
+</div>
+<div class="col-xs-12">
+    <div class="form-group @error('endpoint') has-error @enderror">
+        <label>Endpoint</label>
+        <input type="text" name="endpoint" required class="form-control" value="{{old('endpoint')}}" placeholder="https://MyBucket.s3.eu-central-1.amazonaws.com">
+        @error('endpoint')
+            <p class="help-block">{{$message}}</p>
+        @enderror
+        <p class="help-block">
+            This must be the full URL including the bucket name, region etc.
+        </p>
     </div>
 </div>
 <div class="col-sm-6">
@@ -23,44 +35,6 @@
         @error('secret')
             <p class="help-block">{{$message}}</p>
         @enderror
-    </div>
-</div>
-<div class="col-sm-6">
-    <div class="form-group @error('region') has-error @enderror">
-        <label>Region</label>
-        <input type="text" name="region" required class="form-control" value="{{old('region')}}" placeholder="eu-central-1">
-        @error('region')
-            <p class="help-block">{{$message}}</p>
-        @enderror
-    </div>
-</div>
-<div class="col-sm-6">
-    <div class="form-group @error('endpoint') has-error @enderror">
-        <label>Endpoint</label>
-        <input type="text" name="endpoint" required class="form-control" value="{{old('endpoint')}}" placeholder="https://s3.eu-central-1.amazonaws.com">
-        @error('endpoint')
-            <p class="help-block">{{$message}}</p>
-        @enderror
-    </div>
-</div>
-<div class="col-xs-6">
-    <div class="radio">
-        <label>
-            <input type="radio" name="use_path_style_endpoint" @checked(!old('use_path_style_endpoint')) value="0"> Subdomain endpoint
-        </label>
-        <p class="help-block">
-            E.g.: <code>BUCKETNAME.s3.example.com</code>
-        </p>
-    </div>
-</div>
-<div class="col-xs-6">
-    <div class="radio">
-        <label>
-            <input type="radio" name="use_path_style_endpoint" @checked(old('use_path_style_endpoint')) value="1"> Path endpoint
-        </label>
-        <p class="help-block">
-            E.g.: <code>s3.example.com/BUCKETNAME</code>
-        </p>
     </div>
 </div>
 <div class="col-xs-12">

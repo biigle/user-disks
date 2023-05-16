@@ -23,13 +23,16 @@ return [
                 'connect_timeout' => 5,
             ],
             'throw' => true,
+            'bucket_endpoint' => true,
+            // Bucket and region are not needed because bucket_endpoint is true.
+            // This means that the bucket and regions should be provided directly in the
+            // endpoint URL instead.
+            'region' => '',
             // These should be configured by the user.
+            'bucket' => '',
             'key' => '',
             'secret' => '',
-            'region' => '',
-            'bucket' => '',
             'endpoint' => '',
-            'use_path_style_endpoint' => false,
         ],
     ],
 
@@ -39,12 +42,10 @@ return [
      */
     'store_validation' => [
         's3' => [
-            'key' => 'required',
-            'secret' => 'required',
-            'region' => 'required',
             'bucket' => 'required',
             'endpoint' => 'required|url',
-            'use_path_style_endpoint' => 'boolean',
+            'key' => 'required',
+            'secret' => 'required',
         ],
     ],
 
@@ -54,12 +55,10 @@ return [
      */
     'update_validation' => [
         's3' => [
-            'key' => 'filled',
-            'secret' => 'filled',
-            'region' => 'filled',
             'bucket' => 'filled',
             'endpoint' => 'filled|url',
-            'use_path_style_endpoint' => 'boolean',
+            'key' => 'filled',
+            'secret' => 'filled',
         ],
     ],
 

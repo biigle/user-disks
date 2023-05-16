@@ -69,12 +69,6 @@ class UpdateUserDisk extends FormRequest
         $optionKeys = array_keys($this->getTypeValidationRules());
         $options = $this->safe()->only($optionKeys);
 
-        foreach ($this->rules() as $key => $rules) {
-            if (in_array('boolean', explode('|', $rules)) && array_key_exists($key, $options)) {
-                $options[$key] = boolval($options[$key]);
-            }
-        }
-
         return $options;
     }
 }

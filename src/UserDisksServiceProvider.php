@@ -11,8 +11,8 @@ use Biigle\User;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
-use Storage;
 
 class UserDisksServiceProvider extends ServiceProvider
 {

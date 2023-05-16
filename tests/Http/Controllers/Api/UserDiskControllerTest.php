@@ -34,25 +34,6 @@ class UserDiskControllerTest extends ApiTestCase
             ->assertStatus(422);
     }
 
-    public function testStoreBoolean()
-    {
-        $this->beUser();
-        $this->postJson("/api/v1/user-disks", [
-                'name' => 'my disk',
-                'type' => 's3',
-                'key' => 'abc',
-                'secret' => 'abc',
-                'region' => 'abc',
-                'bucket' => 'abc',
-                'endpoint' => 'http://example.com',
-                'use_path_style_endpoint' => '1',
-            ])
-            ->assertStatus(201);
-
-        $disk = UserDisk::where('user_id', $this->user()->id)->first();
-        $this->assertTrue($disk->options['use_path_style_endpoint']);
-    }
-
     public function testStoreS3()
     {
         $this->beUser();
@@ -67,10 +48,8 @@ class UserDiskControllerTest extends ApiTestCase
                 'type' => 's3',
                 'key' => 'abc',
                 'secret' => 'abc',
-                'region' => 'abc',
-                'bucket' => 'abc',
-                'endpoint' => 'http://example.com',
-                'use_path_style_endpoint' => true,
+                'bucket' => 'bucket',
+                'endpoint' => 'http://bucket.example.com',
             ])
             ->assertStatus(201);
 
@@ -82,10 +61,8 @@ class UserDiskControllerTest extends ApiTestCase
         $expect = [
             'key' => 'abc',
             'secret' => 'abc',
-            'region' => 'abc',
-            'bucket' => 'abc',
-            'endpoint' => 'http://example.com',
-            'use_path_style_endpoint' => true,
+            'bucket' => 'bucket',
+            'endpoint' => 'http://bucket.example.com',
         ];
         $this->assertEquals($expect, $disk->options);
     }
@@ -102,26 +79,6 @@ class UserDiskControllerTest extends ApiTestCase
         $this->putJson("/api/v1/user-disks/{$disk->id}")->assertStatus(200);
     }
 
-    public function testUpdateBoolean()
-    {
-        $disk = UserDisk::factory()->create([
-            'type' => 's3',
-            'name' => 'abc',
-            'options' => [
-                'use_path_style_endpoint' => false,
-            ],
-        ]);
-
-        $this->be($disk->user);
-        $this->putJson("/api/v1/user-disks/{$disk->id}", [
-                'use_path_style_endpoint' => '1',
-            ])
-            ->assertStatus(200);
-
-        $disk->refresh();
-        $this->assertTrue($disk->options['use_path_style_endpoint']);
-    }
-
     public function testUpdateS3()
     {
         $disk = UserDisk::factory()->create([
@@ -130,28 +87,19 @@ class UserDiskControllerTest extends ApiTestCase
             'options' => [
                 'key' => 'def',
                 'secret' => 'ghi',
-                'region' => 'jkl',
-                'bucket' => 'mno',
-                'endpoint' => 'https://example.com',
-                'use_path_style_endpoint' => false,
+                'bucket' => 'jkl',
+                'endpoint' => 'https://jkl.example.com',
             ],
         ]);
 
         $this->be($disk->user);
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-                'use_path_style_endpoint' => 'abc',
-            ])
-            ->assertStatus(422);
-
-        $this->putJson("/api/v1/user-disks/{$disk->id}", [
                 'type' => 'unknown',
                 'name' => 'cba',
                 'key' => 'fed',
                 'secret' => 'ihg',
-                'region' => 'lkj',
                 'bucket' => 'onm',
-                'endpoint' => 'https://s3.example.com',
-                'use_path_style_endpoint' => true,
+                'endpoint' => 'https://onm.example.com',
             ])
             ->assertStatus(200);
 
@@ -159,10 +107,8 @@ class UserDiskControllerTest extends ApiTestCase
         $expect = [
             'key' => 'fed',
             'secret' => 'ihg',
-            'region' => 'lkj',
             'bucket' => 'onm',
-            'endpoint' => 'https://s3.example.com',
-            'use_path_style_endpoint' => true,
+            'endpoint' => 'https://onm.example.com',
         ];
         $this->assertEquals('s3', $disk->type);
         $this->assertEquals('cba', $disk->name);
@@ -174,10 +120,8 @@ class UserDiskControllerTest extends ApiTestCase
         $options = [
             'key' => 'def',
             'secret' => 'ghi',
-            'region' => 'jkl',
-            'bucket' => 'mno',
-            'endpoint' => 'https://example.com',
-            'use_path_style_endpoint' => false,
+            'bucket' => 'bucket',
+            'endpoint' => 'https://bucket.example.com',
         ];
         $disk = UserDisk::factory()->create([
             'type' => 's3',

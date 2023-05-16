@@ -31,6 +31,13 @@
         </p>
     </dd>
 
+    <dt>Endpoint</dt>
+    <dd>
+        <p>
+            The S3 storage endpoint of your cloud storage service. This must be the full URL including the bucket name, region etc. You should find this somewhere in the documentation of the service.
+        </p>
+    </dd>
+
     <dt>Access key</dt>
     <dd>
         <p>
@@ -42,27 +49,6 @@
     <dd>
         <p>
             The secret key of the access credentials (like a password).
-        </p>
-    </dd>
-
-    <dt>Region</dt>
-    <dd>
-        <p>
-            The cloud center region of the storage service. This is required only for some cloud storage services. If your service does not support regions, just enter something random.
-        </p>
-    </dd>
-
-    <dt>Endpoint</dt>
-    <dd>
-        <p>
-            The S3 storage endpoint of your cloud storage service. You should find this somewhere in the documentation of the service.
-        </p>
-    </dd>
-
-    <dt>Subdomain/path endpoint</dt>
-    <dd>
-        <p>
-            This option specifies how the bucket name is added to the endpoint URL. A subdomain endpoint will build an URL like <code>BUCKETNAME.s3.example.com</code>. A path endpoint will build an URL like <code>s3.example.com/BUCKETNAME</code>. You can leave this on the default setting if you are unsure. If the storage disk does not work, you can update the option later and try again.
         </p>
     </dd>
 </dl>
