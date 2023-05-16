@@ -1,3 +1,3 @@
 <li>
-    <a href="{{route('user-disks')}}" title="Storage">Storage</a>
+    <a href="{{route('storage-disks')}}" title="Storage">Storage</a>
 </li>
