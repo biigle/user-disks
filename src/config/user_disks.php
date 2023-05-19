@@ -62,6 +62,7 @@ return [
         ],
         'aruna' => [
             'bucket' => 'required',
+            'endpoint' => 'required|url',
             'key' => 'required',
             'secret' => 'required',
             'collectionId' => 'required',
@@ -82,6 +83,7 @@ return [
         ],
         'aruna' => [
             'bucket' => 'filled',
+            'endpoint' => 'filled|url',
             'key' => 'filled',
             'secret' => 'filled',
             'collectionId' => 'filled',
