@@ -15,6 +15,7 @@
       }
     ],
     "require": {
+        "biigle/laravel-aruna-driver": "^1.0",
         "league/flysystem-aws-s3-v3": "^3.12",
         "league/flysystem-read-only": "^3.3"
     },

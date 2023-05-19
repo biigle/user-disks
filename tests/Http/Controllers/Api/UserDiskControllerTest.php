@@ -67,6 +67,43 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals($expect, $disk->options);
     }
 
+    public function testStoreAruna()
+    {
+        $this->beUser();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'aruna',
+            ])
+            ->assertStatus(422);
+
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'aruna',
+                'key' => 'abc',
+                'secret' => 'abc',
+                'bucket' => 'bucket',
+                'endpoint' => 'http://bucket.example.com',
+                'collectionId' => 'MYARUNACOLLECTIONULID',
+                'token' => 'MYSECRETTOKEN',
+            ])
+            ->assertStatus(201);
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNotNull($disk);
+        $this->assertEquals('my disk', $disk->name);
+        $this->assertEquals('aruna', $disk->type);
+        $this->assertNotNull($disk->expires_at);
+        $expect = [
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'endpoint' => 'http://bucket.example.com',
+            'collectionId' => 'MYARUNACOLLECTIONULID',
+            'token' => 'MYSECRETTOKEN',
+        ];
+        $this->assertEquals($expect, $disk->options);
+    }
+
     public function testUpdate()
     {
         $disk = UserDisk::factory()->create();
@@ -111,6 +148,48 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'https://onm.example.com',
         ];
         $this->assertEquals('s3', $disk->type);
+        $this->assertEquals('cba', $disk->name);
+        $this->assertEquals($expect, $disk->options);
+    }
+
+    public function testUpdateAruna()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 'aruna',
+            'name' => 'abc',
+            'options' => [
+                'key' => 'def',
+                'secret' => 'ghi',
+                'bucket' => 'jkl',
+                'endpoint' => 'https://jkl.example.com',
+                'collectionId' => 'pqr',
+                'token' => 'stu',
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'type' => 'unknown',
+                'name' => 'cba',
+                'key' => 'fed',
+                'secret' => 'ihg',
+                'bucket' => 'onm',
+                'endpoint' => 'https://lkj.example.com',
+                'collectionId' => 'rqp',
+                'token' => 'uts',
+            ])
+            ->assertStatus(200);
+
+        $disk->refresh();
+        $expect = [
+            'key' => 'fed',
+                'secret' => 'ihg',
+                'bucket' => 'onm',
+                'endpoint' => 'https://lkj.example.com',
+                'collectionId' => 'rqp',
+                'token' => 'uts',
+        ];
+        $this->assertEquals('aruna', $disk->type);
         $this->assertEquals('cba', $disk->name);
         $this->assertEquals($expect, $disk->options);
     }

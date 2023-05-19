@@ -7,6 +7,7 @@ return [
      */
     'types' => [
         's3' => 'S3',
+        'aruna' => 'Aruna Object Storage',
     ],
 
     /*
@@ -34,6 +35,18 @@ return [
             'secret' => '',
             'endpoint' => '',
         ],
+        'aruna' => [
+            // These options are fixed.
+            'driver' => 'aruna',
+            'apiUri' => 'https://api.aruna-storage.org',
+            // These should be configured by the user.
+            'bucket' => '',
+            'key' => '',
+            'secret' => '',
+            'endpoint' => '',
+            'collectionId' => '',
+            'token' => '',
+        ],
     ],
 
     /*
@@ -47,6 +60,13 @@ return [
             'key' => 'required',
             'secret' => 'required',
         ],
+        'aruna' => [
+            'bucket' => 'required',
+            'key' => 'required',
+            'secret' => 'required',
+            'collectionId' => 'required',
+            'token' => 'required',
+        ],
     ],
 
     /*
@@ -59,6 +79,13 @@ return [
             'endpoint' => 'filled|url',
             'key' => 'filled',
             'secret' => 'filled',
+        ],
+        'aruna' => [
+            'bucket' => 'filled',
+            'key' => 'filled',
+            'secret' => 'filled',
+            'collectionId' => 'filled',
+            'token' => 'filled',
         ],
     ],
 
