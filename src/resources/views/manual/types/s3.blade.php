@@ -5,7 +5,11 @@
 </p>
 
 <p>
-    An S3 bucket must be configured for cross-origin resource sharing (CORS) before it can be used as a storage disk in BIIGLE. Take a look at the <a href="{{route('manual-tutorials', ['volumes', 'remote-locations'])}}#cors">remote locations</a> article for more information on CORS and how it must be configured for BIIGLE. Here is an example for S3 CORS rules in the XML format:
+    An S3 bucket must be configured for cross-origin resource sharing (CORS) before it can be used as a storage disk in BIIGLE. Take a look at the <a href="{{route('manual-tutorials', ['volumes', 'remote-locations'])}}#cors">remote locations</a> article for more information on CORS and how it must be configured for BIIGLE.
+</p>
+
+<p>
+    Example CORS rules in the XML format:
 </p>
 
 <pre>
@@ -20,6 +24,21 @@
 </pre>
 
 <p>
+    Example CORS rules in the JSON format:
+</p>
+
+<pre>
+[
+   {
+      "AllowedHeaders": ["*"],
+      "AllowedMethods": ["GET"],
+      "AllowedOrigins": ["{{url('/')}}"],
+      "ExposeHeaders": []
+   }
+]
+</pre>
+
+<p>
     An S3 storage disk has the following options:
 </p>
 
@@ -28,6 +47,13 @@
     <dd>
         <p>
             The name of the bucket in which the files are stored.
+        </p>
+    </dd>
+
+    <dt>Region</dt>
+    <dd>
+        <p>
+            The compute center region where the bucket is located. Leave this field empty if your cloud storage service does not support regions.
         </p>
     </dd>
 

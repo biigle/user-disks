@@ -49,6 +49,7 @@ class UserDiskControllerTest extends ApiTestCase
                 'key' => 'abc',
                 'secret' => 'abc',
                 'bucket' => 'bucket',
+                'region' => 'us-east-1',
                 'endpoint' => 'http://bucket.example.com',
             ])
             ->assertStatus(201);
@@ -62,9 +63,28 @@ class UserDiskControllerTest extends ApiTestCase
             'key' => 'abc',
             'secret' => 'abc',
             'bucket' => 'bucket',
+            'region' => 'us-east-1',
             'endpoint' => 'http://bucket.example.com',
         ];
         $this->assertEquals($expect, $disk->options);
+    }
+
+    public function testStoreS3RegionEmpty()
+    {
+        $this->beUser();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 's3',
+                'key' => 'abc',
+                'secret' => 'abc',
+                'bucket' => 'bucket',
+                'region' => '',
+                'endpoint' => 'http://bucket.example.com',
+            ])
+            ->assertStatus(201);
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertEquals('', $disk->options['region']);
     }
 
     public function testUpdate()
@@ -88,6 +108,7 @@ class UserDiskControllerTest extends ApiTestCase
                 'key' => 'def',
                 'secret' => 'ghi',
                 'bucket' => 'jkl',
+                'region' => 'us-east-1',
                 'endpoint' => 'https://jkl.example.com',
             ],
         ]);
@@ -99,6 +120,7 @@ class UserDiskControllerTest extends ApiTestCase
                 'key' => 'fed',
                 'secret' => 'ihg',
                 'bucket' => 'onm',
+                'region' => 'us-east-2',
                 'endpoint' => 'https://onm.example.com',
             ])
             ->assertStatus(200);
@@ -108,6 +130,7 @@ class UserDiskControllerTest extends ApiTestCase
             'key' => 'fed',
             'secret' => 'ihg',
             'bucket' => 'onm',
+            'region' => 'us-east-2',
             'endpoint' => 'https://onm.example.com',
         ];
         $this->assertEquals('s3', $disk->type);

@@ -24,9 +24,7 @@ return [
             ],
             'throw' => true,
             'bucket_endpoint' => true,
-            // Bucket and region are not needed because bucket_endpoint is true.
-            // This means that the bucket and regions should be provided directly in the
-            // endpoint URL instead.
+            // The region may or may not be required.
             'region' => '',
             // These should be configured by the user.
             'bucket' => '',
@@ -43,6 +41,7 @@ return [
     'store_validation' => [
         's3' => [
             'bucket' => 'required',
+            'region' => 'nullable',
             'endpoint' => 'required|url',
             'key' => 'required',
             'secret' => 'required',
@@ -56,6 +55,7 @@ return [
     'update_validation' => [
         's3' => [
             'bucket' => 'filled',
+            'region' => 'nullable',
             'endpoint' => 'filled|url',
             'key' => 'filled',
             'secret' => 'filled',
