@@ -1,8 +1,17 @@
-<div class="col-xs-12">
+<div class="col-xs-6">
     <div class="form-group @error('bucket') has-error @enderror">
         <label>Bucket name</label>
         <input type="text" name="bucket" required class="form-control" value="{{old('bucket', $disk->options['bucket'])}}" placeholder="MyBucket">
         @error('bucket')
+            <p class="help-block">{{$message}}</p>
+        @enderror
+    </div>
+</div>
+<div class="col-xs-6">
+    <div class="form-group @error('region') has-error @enderror">
+        <label>Region</label>
+        <input type="text" name="region" class="form-control" value="{{old('region', $disk->options['region'] ?? '')}}" placeholder="us-east-1">
+        @error('region')
             <p class="help-block">{{$message}}</p>
         @enderror
     </div>
