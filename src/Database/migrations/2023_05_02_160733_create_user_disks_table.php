@@ -22,7 +22,6 @@ return new class extends Migration
             // Each type must be present in the user_disks.templates config, too.
             $table->enum('type', [
                 's3',
-                // 'aos',
             ]);
 
             $table->foreignId('user_id')
