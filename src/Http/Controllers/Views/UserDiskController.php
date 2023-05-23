@@ -62,6 +62,7 @@ class UserDiskController extends Controller
         $dependentVolumes = Volume::where('url', 'like', "disk-{$disk->id}://%")->count();
 
         return view('user-disks::update', [
+            'types' => config('user_disks.types'),
             'disk' => $disk,
             'dependentVolumes' => $dependentVolumes,
         ]);

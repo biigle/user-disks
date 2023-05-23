@@ -61,7 +61,7 @@
 <div class="col-xs-12">
     <div class="checkbox">
         <label>
-            <input type="checkbox" name="know" @checked(old('know')) value="1" required> I have configured the credentials to have only the minimum required permissions (collection access).
+            <input type="checkbox" name="know" @checked(old('know')) value="1" required> I have configured the credentials to have only the minimum required permissions (collection read access).
         </label>
         <p class="help-block">
             The access credentials are stored in the BIIGLE database and minimum permissions reduce risk in case of exposure.

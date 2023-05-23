@@ -24,13 +24,13 @@
 
             <form action="{{url("api/v1/user-disks/{$disk->id}")}}" method="POST">
                 <div class="row">
-                    <div class="col-xs-4">
+                    <div class="col-xs-6">
                         <div class="form-group">
                             <label>Type</label>
-                            <input type="text" name="name" disabled class="form-control" value="{{$disk->type}}">
+                            <input type="text" name="name" disabled class="form-control" value="{{$types[$disk->type]}}">
                         </div>
                     </div>
-                    <div class="col-xs-8">
+                    <div class="col-xs-6">
                         <div class="form-group @error('name') has-error @enderror">
                             <label>Name</label>
                             <input type="text" name="name" required class="form-control" value="{{old('name', $disk->name)}}">

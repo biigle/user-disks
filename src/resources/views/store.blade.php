@@ -11,7 +11,7 @@
             <form @if ($stepTwo) action="{{url('api/v1/user-disks')}}" method="POST" @else action="{{route('create-storage-disks')}}" method="GET" @endif>
                 <fieldset class="row">
                     <legend class="col-xs-12">1. Choose a type and name</legend>
-                    <div class="col-xs-4">
+                    <div class="col-xs-6">
                         <div class="form-group @error('type') has-error @enderror">
                             <label>Type</label>
                             <select name="type" required class="form-control" @disabled($chosenType)>
@@ -27,7 +27,7 @@
                             @endif
                         </div>
                     </div>
-                    <div class="col-xs-8">
+                    <div class="col-xs-6">
                         <div class="form-group @error('name') has-error @enderror">
                             <label>Name</label>
                             <input type="text" name="name" required class="form-control" value="{{$chosenName}}" @readonly($chosenName)>
