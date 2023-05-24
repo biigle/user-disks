@@ -6,11 +6,10 @@ This is a BIIGLE module that offers private storage disks for users.
 
 ## Installation
 
-Note that you have to replace `biigle/user-disks` with the actual name of your module/repository.
-
 1. Run `composer require biigle/user-disks`.
 2. Add `Biigle\Modules\UserDisks\UserDisksServiceProvider::class` to the `providers` array in `config/app.php`.
 3. Run `php artisan vendor:publish --tag=public` to refresh the public assets of the modules. Do this for every update of this module.
+4. Run `php artisan migrate` to create the new database tables.
 
 ## Developing
 
