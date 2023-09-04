@@ -84,7 +84,7 @@ class UserDiskControllerTest extends ApiTestCase
             ->assertStatus(201);
 
         $disk = UserDisk::where('user_id', $this->user()->id)->first();
-        $this->assertEquals('', $disk->options['region']);
+        $this->assertArrayNotHasKey('region', $disk->options);
     }
 
     public function testStoreAruna()

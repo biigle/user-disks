@@ -117,7 +117,7 @@ class UserDiskTest extends ModelTestCase
             'throw' => true,
             'read-only' => true,
             'bucket_endpoint' => true,
-            'region' => '',
+            'region' => 'us-east-1',
         ];
 
         $this->assertEquals($expect, $disk->getConfig());
