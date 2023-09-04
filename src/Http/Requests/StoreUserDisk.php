@@ -49,6 +49,7 @@ class StoreUserDisk extends FormRequest
     {
         $optionKeys = array_keys($this->getTypeValidationRules());
         $options = $this->safe()->only($optionKeys);
+        $options = array_filter($options, fn ($v) => !is_null($v));
 
         return $options;
     }

@@ -25,8 +25,9 @@ return [
             ],
             'throw' => true,
             'bucket_endpoint' => true,
-            // The region may or may not be required.
-            'region' => '',
+            // The region may or may not be provided. However, the S3 SDK requires at
+            // least a placeholder.
+            'region' => 'us-east-1',
             // These should be configured by the user.
             'bucket' => '',
             'key' => '',
