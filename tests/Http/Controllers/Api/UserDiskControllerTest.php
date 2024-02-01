@@ -50,7 +50,8 @@ class UserDiskControllerTest extends ApiTestCase
                 'secret' => 'abc',
                 'bucket' => 'bucket',
                 'region' => 'us-east-1',
-                'endpoint' => 'http://bucket.example.com',
+                // Use a trailing slash to trick the path-style detection.
+                'endpoint' => 'http://bucket.example.com/',
             ])
             ->assertStatus(201);
 
@@ -64,7 +65,8 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => 'us-east-1',
-            'endpoint' => 'http://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com/',
+            'use_path_style_endpoint' => false,
         ];
         $this->assertEquals($expect, $disk->options);
     }
@@ -85,6 +87,41 @@ class UserDiskControllerTest extends ApiTestCase
 
         $disk = UserDisk::where('user_id', $this->user()->id)->first();
         $this->assertArrayNotHasKey('region', $disk->options);
+    }
+
+    public function testStoreS3PathStyle()
+    {
+        $this->beUser();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 's3',
+            ])
+            ->assertStatus(422);
+
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 's3',
+                'key' => 'abc',
+                'secret' => 'abc',
+                'bucket' => 'bucket',
+                'region' => '',
+                'endpoint' => 'http://example.com/bucket',
+            ])
+            ->assertStatus(201);
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNotNull($disk);
+        $this->assertEquals('my disk', $disk->name);
+        $this->assertEquals('s3', $disk->type);
+        $this->assertNotNull($disk->expires_at);
+        $expect = [
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'endpoint' => 'http://example.com/bucket',
+            'use_path_style_endpoint' => true,
+        ];
+        $this->assertEquals($expect, $disk->options);
     }
 
     public function testStoreAruna()
@@ -147,6 +184,7 @@ class UserDiskControllerTest extends ApiTestCase
                 'bucket' => 'jkl',
                 'region' => 'us-east-1',
                 'endpoint' => 'https://jkl.example.com',
+                'use_path_style_endpoint' => false,
             ],
         ]);
 
@@ -169,9 +207,56 @@ class UserDiskControllerTest extends ApiTestCase
             'bucket' => 'onm',
             'region' => 'us-east-2',
             'endpoint' => 'https://onm.example.com',
+            'use_path_style_endpoint' => false,
         ];
         $this->assertEquals('s3', $disk->type);
         $this->assertEquals('cba', $disk->name);
+        $this->assertEquals($expect, $disk->options);
+    }
+
+    public function testUpdateS3PathStyle()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 's3',
+            'name' => 'abc',
+            'options' => [
+                'key' => 'def',
+                'secret' => 'ghi',
+                'bucket' => 'jkl',
+                'endpoint' => 'https://jkl.example.com',
+                'use_path_style_endpoint' => false,
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'endpoint' => 'https://example.com/jkl',
+            ])
+            ->assertStatus(200);
+
+        $disk->refresh();
+        $expect = [
+            'key' => 'def',
+            'secret' => 'ghi',
+            'bucket' => 'jkl',
+            'endpoint' => 'https://example.com/jkl',
+            'use_path_style_endpoint' => true,
+        ];
+        $this->assertEquals($expect, $disk->options);
+
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'endpoint' => 'https://jkl.example.com/',
+            ])
+            ->assertStatus(200);
+
+        $disk->refresh();
+        $expect = [
+            'key' => 'def',
+            'secret' => 'ghi',
+            'bucket' => 'jkl',
+            'endpoint' => 'https://jkl.example.com/',
+            'use_path_style_endpoint' => false,
+        ];
         $this->assertEquals($expect, $disk->options);
     }
 

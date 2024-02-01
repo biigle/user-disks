@@ -51,6 +51,12 @@ class StoreUserDisk extends FormRequest
         $options = $this->safe()->only($optionKeys);
         $options = array_filter($options, fn ($v) => !is_null($v));
 
+        // Automatically detect if a path-style endpoint is used.
+        if ($this->input('type') === 's3') {
+            $path = parse_url($this->input('endpoint'), PHP_URL_PATH);
+            $options['use_path_style_endpoint'] = !is_null($path) && $path !== '/';
+        }
+
         return $options;
     }
 }
