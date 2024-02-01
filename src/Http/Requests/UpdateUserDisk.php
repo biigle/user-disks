@@ -69,6 +69,12 @@ class UpdateUserDisk extends FormRequest
         $optionKeys = array_keys($this->getTypeValidationRules());
         $options = $this->safe()->only($optionKeys);
 
+        // Automatically detect if a path-style endpoint is used.
+        if ($this->disk->type === 's3' && $this->has('endpoint')) {
+            $path = parse_url($this->input('endpoint'), PHP_URL_PATH);
+            $options['use_path_style_endpoint'] = !is_null($path) && $path !== '/';
+        }
+
         return $options;
     }
 }
