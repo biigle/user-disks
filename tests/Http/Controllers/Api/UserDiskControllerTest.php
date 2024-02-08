@@ -69,6 +69,44 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals($expect, $disk->options);
     }
 
+    public function testDuplicateNames(){
+        $this->beUser();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => 'us-east-1',
+            'endpoint' => 'http://bucket.example.com',
+        ])
+        ->assertStatus(201);
+
+        // Disk names must be unique for one user
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => 'us-east-1',
+            'endpoint' => 'http://bucket.example.com',
+        ])
+        ->assertStatus(422);
+
+        $this->beEditor();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => 'us-east-1',
+            'endpoint' => 'http://bucket.example.com',
+        ])
+        ->assertStatus(201);
+    }
+
     public function testStoreS3RegionEmpty()
     {
         $this->beUser();
