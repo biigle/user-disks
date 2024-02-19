@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->timestamp('expires_at')->index();
-            $table->string('name', 128);
+            $table->string('name', 128)->unique();
 
             // Each type must be present in the user_disks.templates config, too.
             $table->enum('type', [
