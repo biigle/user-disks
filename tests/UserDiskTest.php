@@ -3,6 +3,8 @@
 namespace Biigle\Tests\Modules\UserDisks;
 
 use Biigle\Modules\UserDisks\UserDisk;
+use Biigle\Tests\UserTest;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Crypt;
 use ModelTestCase;
 
@@ -177,5 +179,20 @@ class UserDiskTest extends ModelTestCase
         $time = $this->model->expires_at;
         $this->model->extend();
         $this->assertNotEquals($time->toDateTimeString(), $this->model->expires_at->toDateTimeString());
+    }
+
+    public function testUniqueProperties()
+    {
+        self::create([
+            'name' => $this->model->name,
+            'user_id' => UserTest::create()->id
+        ]);
+
+        $this->expectException(UniqueConstraintViolationException::class);
+        // User already uses a disk with this name
+        self::create([
+            'name' => $this->model->name,
+            'user_id' => $this->model->user_id
+        ]);
     }
 }

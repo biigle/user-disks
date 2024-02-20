@@ -59,4 +59,14 @@ class StoreUserDisk extends FormRequest
 
         return $options;
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            // Different user may have equal disk names, but disk names of one user must be unqiue
+            if (UserDisk::where(['user_id' => $this->user()->id, 'name' => $this->input('name')])->exists()) {
+                $validator->errors()->add('name', 'Disk name already exists');
+            }
+        });
+    }
 }
