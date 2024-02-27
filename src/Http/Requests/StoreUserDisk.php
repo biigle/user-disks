@@ -26,7 +26,7 @@ class StoreUserDisk extends FormRequest
     {
         return array_merge([
             'name' => 'required',
-            'type' => 'required|in:s3,aruna',
+            'type' => 'required|in:s3',
         ], $this->getTypeValidationRules());
     }
 

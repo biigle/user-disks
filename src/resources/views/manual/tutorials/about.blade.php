@@ -40,9 +40,8 @@
             </div>
         </div>
 
-        @foreach(config('user_disks.types') as $type => $name)
-            @include("user-disks::manual.types.{$type}")
-        @endforeach
+        @include("user-disks::manual.types.s3")
 
+        @include("user-disks::manual.types.aos")
     </div>
 @endsection
