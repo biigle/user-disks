@@ -45,7 +45,7 @@
 <ol>
     <li>
         <p>
-            Log in to the <a href="https://dev.aruna-storage.org">AOS dashboard</a>, select "Explore" and then "Resources" in the menu at the top.
+            Log in to the <a href="https://aruna-storage.org">AOS dashboard</a>, select "Explore" and then "Resources" in the menu at the top.
         </p>
     </li>
     <li>
