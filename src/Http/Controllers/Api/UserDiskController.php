@@ -2,11 +2,15 @@
 
 namespace Biigle\Modules\UserDisks\Http\Controllers\Api;
 
+use Exception;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Biigle\Modules\UserDisks\UserDisk;
+use Illuminate\Support\Facades\Storage;
 use Biigle\Http\Controllers\Api\Controller;
 use Biigle\Modules\UserDisks\Http\Requests\StoreUserDisk;
-use Biigle\Modules\UserDisks\Http\Requests\UpdateUserDisk;
 use Biigle\Modules\UserDisks\Http\Requests\ExtendUserDisk;
-use Biigle\Modules\UserDisks\UserDisk;
+use Biigle\Modules\UserDisks\Http\Requests\UpdateUserDisk;
 
 class UserDiskController extends Controller
 {
@@ -47,6 +51,14 @@ class UserDiskController extends Controller
             return $disk;
         }
 
+        $errors = $this->validateS3Config($disk);
+        if ($errors) {
+            $disk->delete();
+            return $this->fuzzyRedirect()
+                ->withErrors($errors)
+                ->withInput();
+        }
+
         return $this->fuzzyRedirect('storage-disks')
             ->with('message', 'Storage disk created')
             ->with('messageType', 'success');
@@ -82,6 +94,13 @@ class UserDiskController extends Controller
             $request->disk->options,
             $request->getDiskOptions()
         );
+
+        $errors = $this->validateS3Config($request->disk);
+        if ($errors) {
+            return $this->fuzzyRedirect()
+                ->withErrors($errors)
+                ->withInput();
+        }
 
         $request->disk->save();
 
@@ -141,5 +160,61 @@ class UserDiskController extends Controller
                 ->with('message', 'Storage disk deleted')
                 ->with('messageType', 'success');
         }
+    }
+    protected function validateS3Config(UserDisk $disk)
+    {
+        if ($disk->type != 's3') {
+            return [];
+        }
+
+        $errors = [];
+        $options = $disk->options;
+        $use_path_style_endpoint = $options['use_path_style_endpoint'];
+        $endpoint = $options['endpoint'];
+        $bucket = $options['bucket'];
+
+        // Check if endpoint contains bucket name
+        if (preg_match("/(\b\/" . $bucket . "\.|\b" . $bucket . "\b)/", $endpoint)) {
+            // Remove bucket name from end of url, because Storage::build() adds bucket name if url has path style
+            if ($use_path_style_endpoint && Str::endsWith($endpoint, $bucket)) {
+                $endpoint = Str::chopEnd($endpoint, $bucket);
+            }
+        } else {
+            $errors['endpoint'] = 'Missing or incorrect bucket name';
+        }
+
+        try {
+            // Use build() instead of disk(), because it is easier to configure and revert erroneous update requests
+            $disk = Storage::build([
+                'driver' => 's3',
+                'key' => $options['key'],
+                'secret' => $options['secret'],
+                'region' => Arr::has($options, 'region') ? $options['region'] : '',
+                'bucket' => $bucket,
+                'endpoint' => $endpoint,
+                'use_path_style_endpoint' => $use_path_style_endpoint,
+                'http' => ['connect_timeout' => 5],
+            ]);
+            $disk->allFiles();
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
+            if (Str::contains($msg, "region", true)) {
+                $errors['region'] = 'Region required';
+            } else if (Str::contains($msg, 'timeout', true)) {
+                $errors['endpoint'] = 'Endpoint url incorrect or currently not available';
+            } else if(Str::contains($msg, 'cURL error', true)){
+                $errors['endpoint'] = 'Endpoint url incorrect';
+            } else if (
+                !Arr::has($errors, 'endpoint')
+                && Str::contains($msg, ["AccessDenied", "NoSuchBucket", "NoSuchKey"], true)
+            ) {
+                $errors['error'] = 'Access denied. Please check if your input is correct';
+            }
+
+            if (empty($errors)) {
+                $errors['error'] = 'An error occurred. Please check if your input is correct';
+            }
+        }
+        return $errors;
     }
 }
