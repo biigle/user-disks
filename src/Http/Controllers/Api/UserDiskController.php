@@ -3,8 +3,8 @@
 namespace Biigle\Modules\UserDisks\Http\Controllers\Api;
 
 use Exception;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Biigle\Modules\UserDisks\UserDisk;
 use Illuminate\Support\Facades\Storage;
 use Biigle\Http\Controllers\Api\Controller;
@@ -89,20 +89,27 @@ class UserDiskController extends Controller
      */
     public function update(UpdateUserDisk $request)
     {
-        $request->disk->name = $request->input('name', $request->disk->name);
-        $request->disk->options = array_merge(
-            $request->disk->options,
-            $request->getDiskOptions()
-        );
+        $errors = DB::transaction(function () use ($request) {
+            $request->disk->name = $request->input('name', $request->disk->name);
+            $request->disk->options = array_merge(
+                $request->disk->options,
+                $request->getDiskOptions()
+            );
 
-        $errors = $this->validateS3Config($request->disk);
+            $request->disk->save();
+
+            $errors = $this->validateS3Config($request->disk);
+            if ($errors) {
+                DB::rollBack();
+            }
+            return $errors;
+        });
+
         if ($errors) {
             return $this->fuzzyRedirect()
                 ->withErrors($errors)
                 ->withInput();
         }
-
-        $request->disk->save();
 
         if (!$this->isAutomatedRequest()) {
             return $this->fuzzyRedirect()
@@ -169,45 +176,30 @@ class UserDiskController extends Controller
 
         $errors = [];
         $options = $disk->options;
-        $use_path_style_endpoint = $options['use_path_style_endpoint'];
         $endpoint = $options['endpoint'];
         $bucket = $options['bucket'];
 
         // Check if endpoint contains bucket name
-        if (preg_match("/(\b\/" . $bucket . "\.|\b" . $bucket . "\b)/", $endpoint)) {
-            // Remove bucket name from end of url, because Storage::build() adds bucket name if url has path style
-            if ($use_path_style_endpoint && Str::endsWith($endpoint, $bucket)) {
-                $endpoint = Str::chopEnd($endpoint, $bucket);
-            }
-        } else {
-            $errors['endpoint'] = 'Missing or incorrect bucket name';
+        if (!preg_match("/(\b\/" . $bucket . "\.|\b" . $bucket . "\b)/", $endpoint)) {
+            $errors['endpoint'] = 'Endpoint url requires bucket name';
+            return $errors;
         }
 
         try {
-            // Use build() instead of disk(), because it is easier to configure and revert erroneous update requests
-            $disk = Storage::build([
-                'driver' => 's3',
-                'key' => $options['key'],
-                'secret' => $options['secret'],
-                'region' => Arr::has($options, 'region') ? $options['region'] : '',
-                'bucket' => $bucket,
-                'endpoint' => $endpoint,
-                'use_path_style_endpoint' => $use_path_style_endpoint,
-                'http' => ['connect_timeout' => 5],
-            ]);
-            $disk->allFiles();
+            $disk = Storage::disk("disk-{$disk->id}");
+            $files = $disk->getAdapter()->listContents('/', false);
+            // Need to access an element to check if endpoint url is valid
+            $files->current();
         } catch (Exception $e) {
             $msg = $e->getMessage();
+
             if (Str::contains($msg, "region", true)) {
                 $errors['region'] = 'Region required';
             } else if (Str::contains($msg, 'timeout', true)) {
                 $errors['endpoint'] = 'Endpoint url incorrect or currently not available';
-            } else if(Str::contains($msg, 'cURL error', true)){
+            } else if (Str::contains($msg, ['cURL error', 'Error parsing XML'], true)) {
                 $errors['endpoint'] = 'Endpoint url incorrect';
-            } else if (
-                !Arr::has($errors, 'endpoint')
-                && Str::contains($msg, ["AccessDenied", "NoSuchBucket", "NoSuchKey"], true)
-            ) {
+            } else if (Str::contains($msg, ["AccessDenied", "NoSuchBucket", "NoSuchKey"], true)) {
                 $errors['error'] = 'Access denied. Please check if your input is correct';
             }
 
