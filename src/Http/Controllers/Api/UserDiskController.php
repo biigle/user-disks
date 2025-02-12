@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Biigle\Modules\UserDisks\UserDisk;
 use Illuminate\Support\Facades\Storage;
+use Dotenv\Exception\ValidationException;
 use Biigle\Http\Controllers\Api\Controller;
 use Biigle\Modules\UserDisks\Http\Requests\StoreUserDisk;
 use Biigle\Modules\UserDisks\Http\Requests\ExtendUserDisk;
@@ -39,29 +40,31 @@ class UserDiskController extends Controller
      */
     public function store(StoreUserDisk $request)
     {
-        $disk = UserDisk::create([
-            'name' => $request->input('name'),
-            'type' => $request->input('type'),
-            'user_id' => $request->user()->id,
-            'expires_at' => now()->addMonths(config('user_disks.expires_months')),
-            'options' => $request->getDiskOptions(),
-        ]);
+        try {
+            DB::transaction(function () use ($request) {
+                $disk = UserDisk::create([
+                    'name' => $request->input('name'),
+                    'type' => $request->input('type'),
+                    'user_id' => $request->user()->id,
+                    'expires_at' => now()->addMonths(config('user_disks.expires_months')),
+                    'options' => $request->getDiskOptions(),
+                ]);
 
-        if ($this->isAutomatedRequest()) {
-            return $disk;
-        }
+                $this->validateS3Config($disk);
 
-        $errors = $this->validateS3Config($disk);
-        if ($errors) {
-            $disk->delete();
+                if ($this->isAutomatedRequest()) {
+                    return $disk;
+                }
+            });
+
+            return $this->fuzzyRedirect('storage-disks')
+                ->with('message', 'Storage disk created')
+                ->with('messageType', 'success');
+        } catch (ValidationException $e) {
             return $this->fuzzyRedirect()
-                ->withErrors($errors)
+                ->withErrors(['error' => $e->getMessage()])
                 ->withInput();
         }
-
-        return $this->fuzzyRedirect('storage-disks')
-            ->with('message', 'Storage disk created')
-            ->with('messageType', 'success');
     }
 
     /**
@@ -89,32 +92,28 @@ class UserDiskController extends Controller
      */
     public function update(UpdateUserDisk $request)
     {
-        $errors = DB::transaction(function () use ($request) {
-            $request->disk->name = $request->input('name', $request->disk->name);
-            $request->disk->options = array_merge(
-                $request->disk->options,
-                $request->getDiskOptions()
-            );
+        try {
+            DB::transaction(function () use ($request) {
+                $request->disk->name = $request->input('name', $request->disk->name);
+                $request->disk->options = array_merge(
+                    $request->disk->options,
+                    $request->getDiskOptions()
+                );
 
-            $request->disk->save();
+                $request->disk->save();
 
-            $errors = $this->validateS3Config($request->disk);
-            if ($errors) {
-                DB::rollBack();
+                $this->validateS3Config($request->disk);
+            });
+
+            if (!$this->isAutomatedRequest()) {
+                return $this->fuzzyRedirect()
+                    ->with('message', 'Storage disk updated')
+                    ->with('messageType', 'success');
             }
-            return $errors;
-        });
-
-        if ($errors) {
+        } catch (ValidationException $e) {
             return $this->fuzzyRedirect()
-                ->withErrors($errors)
+                ->withErrors(['error' => $e->getMessage()])
                 ->withInput();
-        }
-
-        if (!$this->isAutomatedRequest()) {
-            return $this->fuzzyRedirect()
-                ->with('message', 'Storage disk updated')
-                ->with('messageType', 'success');
         }
     }
 
@@ -171,18 +170,16 @@ class UserDiskController extends Controller
     protected function validateS3Config(UserDisk $disk)
     {
         if ($disk->type != 's3') {
-            return [];
+            return;
         }
 
-        $errors = [];
         $options = $disk->options;
         $endpoint = $options['endpoint'];
         $bucket = $options['bucket'];
 
         // Check if endpoint contains bucket name
         if (!preg_match("/(\b\/" . $bucket . "\.|\b" . $bucket . "\b)/", $endpoint)) {
-            $errors['endpoint'] = 'Missing bucket name. Please check if the bucket name is present and spelled correctly.';
-            return $errors;
+            throw new ValidationException('Endpoint url must contain bucket name. Please check if bucket name is present and spelled correctly.');
         }
 
         try {
@@ -194,17 +191,15 @@ class UserDiskController extends Controller
             $msg = $e->getMessage();
 
             if (Str::contains($msg, 'timeout', true)) {
-                $errors['endpoint'] = 'The endpoint URL could not be accessed. Does it exist?';
+                throw new ValidationException('The endpoint URL could not be accessed. Does it exist?');
             } else if (Str::contains($msg, ['cURL error', 'Error parsing XML'], true)) {
-                $errors['endpoint'] = 'This does not seem to be a valid S3 endpoint.';
+                throw new ValidationException('This does not seem to be a valid S3 endpoint.');
             } else if (Str::contains($msg, ["AccessDenied", "NoSuchBucket", "NoSuchKey"], true)) {
-                $errors['error'] = 'The bucket could not be accessed. Please check for typos or missing access permissions.';
-            }
-
-            if (empty($errors)) {
-                $errors['error'] = 'An error occurred. Please check if your input is correct.';
+                throw new ValidationException('The bucket could not be accessed. Please check for typos or missing access permissions.');
+            } else {
+                throw new ValidationException('An error occurred. Please check if your input is correct.');
             }
         }
-        return $errors;
+        return;
     }
 }
