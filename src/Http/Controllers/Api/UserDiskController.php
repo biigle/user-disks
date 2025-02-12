@@ -181,30 +181,28 @@ class UserDiskController extends Controller
 
         // Check if endpoint contains bucket name
         if (!preg_match("/(\b\/" . $bucket . "\.|\b" . $bucket . "\b)/", $endpoint)) {
-            $errors['endpoint'] = 'Endpoint url requires bucket name';
+            $errors['endpoint'] = 'Missing bucket name. Please check if the bucket name is present and spelled correctly.';
             return $errors;
         }
 
         try {
             $disk = Storage::disk("disk-{$disk->id}");
-            $files = $disk->getAdapter()->listContents('/', false);
+            $files = $disk->getAdapter()->listContents('', false);
             // Need to access an element to check if endpoint url is valid
             $files->current();
         } catch (Exception $e) {
             $msg = $e->getMessage();
 
-            if (Str::contains($msg, "region", true)) {
-                $errors['region'] = 'Region required';
-            } else if (Str::contains($msg, 'timeout', true)) {
-                $errors['endpoint'] = 'Endpoint url incorrect or currently not available';
+            if (Str::contains($msg, 'timeout', true)) {
+                $errors['endpoint'] = 'The endpoint URL could not be accessed. Does it exist?';
             } else if (Str::contains($msg, ['cURL error', 'Error parsing XML'], true)) {
-                $errors['endpoint'] = 'Endpoint url incorrect';
+                $errors['endpoint'] = 'This does not seem to be a valid S3 endpoint.';
             } else if (Str::contains($msg, ["AccessDenied", "NoSuchBucket", "NoSuchKey"], true)) {
-                $errors['error'] = 'Access denied. Please check if your input is correct';
+                $errors['error'] = 'The bucket could not be accessed. Please check for typos or missing access permissions.';
             }
 
             if (empty($errors)) {
-                $errors['error'] = 'An error occurred. Please check if your input is correct';
+                $errors['error'] = 'An error occurred. Please check if your input is correct.';
             }
         }
         return $errors;
