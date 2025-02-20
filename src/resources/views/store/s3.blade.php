@@ -14,10 +14,8 @@
         @error('region')
             <p class="help-block">{{$message}}</p>
         @enderror
-    </div>
-    @if (!$errors->has('region'))
         <p class="help-block">Leave empty if your cloud storage service does not support regions.</p>
-    @endif
+    </div>
 </div>
 <div class="col-xs-12">
     <div class="form-group @error('endpoint') has-error @enderror">
@@ -26,10 +24,10 @@
         @error('endpoint')
             <p class="help-block">{{$message}}</p>
         @enderror
+        <p class="help-block">
+            This must be the full URL including the bucket name, region etc.
+        </p>
     </div>
-    <p class="help-block">
-        This must be the full URL including the bucket name, region etc.
-    </p>
 </div>
 <div class="col-sm-6">
     <div class="form-group @error('key') has-error @enderror">
