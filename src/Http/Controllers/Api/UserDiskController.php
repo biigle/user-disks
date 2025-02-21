@@ -7,11 +7,12 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Biigle\Modules\UserDisks\UserDisk;
 use Illuminate\Support\Facades\Storage;
-use Dotenv\Exception\ValidationException;
 use Biigle\Http\Controllers\Api\Controller;
+use Illuminate\Validation\ValidationException;
 use Biigle\Modules\UserDisks\Http\Requests\StoreUserDisk;
 use Biigle\Modules\UserDisks\Http\Requests\ExtendUserDisk;
 use Biigle\Modules\UserDisks\Http\Requests\UpdateUserDisk;
+use Biigle\Modules\UserDisks\Exceptions\DiskValidationException;
 
 class UserDiskController extends Controller
 {
@@ -60,9 +61,9 @@ class UserDiskController extends Controller
             return $this->fuzzyRedirect('storage-disks')
                 ->with('message', 'Storage disk created')
                 ->with('messageType', 'success');
-        } catch (ValidationException $e) {
+        } catch (DiskValidationException $e) {
             return $this->fuzzyRedirect()
-                ->withErrors(['error' => $e->getMessage()])
+                ->withErrors($e->getValidationError())
                 ->withInput();
         }
     }
@@ -101,7 +102,6 @@ class UserDiskController extends Controller
                 );
 
                 $request->disk->save();
-
                 $this->validateS3Config($request->disk);
             });
 
@@ -110,9 +110,9 @@ class UserDiskController extends Controller
                     ->with('message', 'Storage disk updated')
                     ->with('messageType', 'success');
             }
-        } catch (ValidationException $e) {
+        } catch (DiskValidationException $e) {
             return $this->fuzzyRedirect()
-                ->withErrors(['error' => $e->getMessage()])
+                ->withErrors($e->getValidationError())
                 ->withInput();
         }
     }
@@ -179,7 +179,7 @@ class UserDiskController extends Controller
 
         // Check if endpoint contains bucket name
         if (!preg_match("/(\b\/" . $bucket . "\.|\b" . $bucket . "\b)/", $endpoint)) {
-            throw new ValidationException('Endpoint url must contain bucket name. Please check if bucket name is present and spelled correctly.');
+            throw ValidationException::withMessages(['endpoint' => 'Endpoint url must contain bucket name. Please check if name is present and spelled correctly.']);
         }
 
         try {
@@ -191,13 +191,13 @@ class UserDiskController extends Controller
             $msg = $e->getMessage();
 
             if (Str::contains($msg, 'timeout', true)) {
-                throw new ValidationException('The endpoint URL could not be accessed. Does it exist?');
-            } else if (Str::contains($msg, ['cURL error', 'Error parsing XML'], true)) {
-                throw new ValidationException('This does not seem to be a valid S3 endpoint.');
-            } else if (Str::contains($msg, ["AccessDenied", "NoSuchBucket", "NoSuchKey"], true)) {
-                throw new ValidationException('The bucket could not be accessed. Please check for typos or missing access permissions.');
+                throw  ValidationException::withMessages(['error' => 'The endpoint URL could not be accessed. Does it exist?']);
+            } elseif (Str::contains($msg, ['cURL error', 'Error parsing XML'], true)) {
+                throw  ValidationException::withMessages(['endpoint' => 'This does not seem to be a valid S3 endpoint.']);
+            } elseif (Str::contains($msg, ["AccessDenied", "NoSuchBucket", "NoSuchKey"], true)) {
+                throw  ValidationException::withMessages(['error' => 'The bucket could not be accessed. Please check for typos or missing access permissions.']);
             } else {
-                throw new ValidationException('An error occurred. Please check if your input is correct.');
+                throw  ValidationException::withMessages(['error' => 'An error occurred. Please check if your input is correct.']);
             }
         }
         return;
