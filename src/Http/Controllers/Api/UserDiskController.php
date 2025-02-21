@@ -42,7 +42,7 @@ class UserDiskController extends Controller
     public function store(StoreUserDisk $request)
     {
         try {
-            DB::transaction(function () use ($request) {
+            $disk = DB::transaction(function () use ($request) {
                 $disk = UserDisk::create([
                     'name' => $request->input('name'),
                     'type' => $request->input('type'),
@@ -53,10 +53,12 @@ class UserDiskController extends Controller
 
                 $this->validateS3Config($disk);
 
-                if ($this->isAutomatedRequest()) {
-                    return $disk;
-                }
+                return $disk;
             });
+
+            if ($this->isAutomatedRequest()) {
+                return $disk;
+            }
 
             return $this->fuzzyRedirect('storage-disks')
                 ->with('message', 'Storage disk created')
