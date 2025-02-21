@@ -185,10 +185,7 @@ class UserDiskController extends Controller
         }
 
         try {
-            $disk = Storage::disk("disk-{$disk->id}");
-            $files = $disk->getAdapter()->listContents('', false);
-            // Need to access an element to check if endpoint url is valid
-            $files->current();
+            $this->canAccessDisk($disk);
         } catch (Exception $e) {
             $msg = $e->getMessage();
 
@@ -203,5 +200,13 @@ class UserDiskController extends Controller
             }
         }
         return;
+    }
+
+    protected function canAccessDisk($disk)
+    {
+        $disk = Storage::disk("disk-{$disk->id}");
+        $files = $disk->getAdapter()->listContents('', false);
+        // Need to access an element to check if endpoint url is valid
+        $files->current();
     }
 }
