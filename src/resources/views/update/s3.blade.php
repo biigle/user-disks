@@ -23,7 +23,7 @@
         @error('endpoint')
             <p class="help-block">{{$message}}</p>
         @enderror
-         <p class="help-block">
+        <p class="help-block">
             This must be the full URL including the bucket name, region etc.
         </p>
     </div>

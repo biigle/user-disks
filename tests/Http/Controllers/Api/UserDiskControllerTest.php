@@ -9,7 +9,8 @@ use Biigle\Modules\UserDisks\Http\Controllers\Api\UserDiskController;
 
 class UserDiskControllerTest extends ApiTestCase
 {
-    private $mockS3 = null;
+    private $mockS3;
+    
     public function setUp(): void
     {
         parent::setUp();
@@ -47,7 +48,6 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3()
     {
         $this->beUser();
-
         $this->mockS3->shouldReceive('canAccessDisk')->never();
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
@@ -86,7 +86,6 @@ class UserDiskControllerTest extends ApiTestCase
 
     public function testDuplicateNames(){
         $this->beUser();
-
         $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
@@ -128,7 +127,6 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3RegionEmpty()
     {
         $this->beUser();
-
         $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
@@ -148,7 +146,6 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3PathStyle()
     {
         $this->beUser();
-
         $this->mockS3->shouldReceive('canAccessDisk')->never();
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
@@ -374,7 +371,6 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreInvalidS3Config()
     {
         $this->beUser();
-
         $this->mockS3->shouldReceive('canAccessDisk')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
@@ -384,8 +380,7 @@ class UserDiskControllerTest extends ApiTestCase
             'bucket' => 'ucket',
             'region' => '',
             'endpoint' => 'http://bucket.example.com',
-        ])
-            ->assertUnprocessable();
+        ])->assertUnprocessable();
 
         $disk = UserDisk::where('user_id', $this->user()->id)->first();
         $this->assertEmpty($disk);
@@ -410,8 +405,7 @@ class UserDiskControllerTest extends ApiTestCase
         $this->mockS3->shouldReceive('canAccessDisk')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'endpoint' => 'https://bucket.example.com',
-        ])
-            ->assertUnprocessable();
+        ])->assertUnprocessable();
 
         $disk = $disk->fresh();
         $this->assertEquals('https://jkl.example.com', $disk->options['endpoint']);
@@ -420,7 +414,6 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreIncorrectBucketName()
     {
         $this->beUser();
-
         $this->mockS3->shouldReceive('canAccessDisk')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
@@ -430,8 +423,7 @@ class UserDiskControllerTest extends ApiTestCase
             'bucket' => 'ucket',
             'region' => '',
             'endpoint' => 'http://bucket.example.com',
-        ])
-            ->assertUnprocessable();
+        ])->assertUnprocessable();
 
         $this->mockS3->shouldReceive('canAccessDisk')->never();
         $this->postJson("/api/v1/user-disks", [
@@ -442,8 +434,7 @@ class UserDiskControllerTest extends ApiTestCase
             'bucket' => 'bucket',
             'region' => '',
             'endpoint' => 'http://ucket.example.com',
-        ])
-            ->assertUnprocessable();
+        ])->assertUnprocessable();
 
         $this->mockS3->shouldReceive('canAccessDisk')->never();
         $this->postJson("/api/v1/user-disks", [
@@ -454,8 +445,7 @@ class UserDiskControllerTest extends ApiTestCase
             'bucket' => 'ucket',
             'region' => '',
             'endpoint' => 'http://example.com/bucket',
-        ])
-            ->assertUnprocessable();
+        ])->assertUnprocessable();
 
         $this->mockS3->shouldReceive('canAccessDisk')->never();
         $this->postJson("/api/v1/user-disks", [
@@ -466,8 +456,7 @@ class UserDiskControllerTest extends ApiTestCase
             'bucket' => 'bucket',
             'region' => '',
             'endpoint' => 'http://example.com/ucket',
-        ])
-            ->assertUnprocessable();
+        ])->assertUnprocessable();
     }
 
     public function testUpdateIncorrectBucketName()
@@ -496,8 +485,7 @@ class UserDiskControllerTest extends ApiTestCase
             'bucket' => 'm',
             'region' => 'us-east-2',
             'endpoint' => 'https://onm.example.com',
-        ])
-            ->assertUnprocessable();
+        ])->assertUnprocessable();
 
         $this->mockS3->shouldReceive('canAccessDisk')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
@@ -508,8 +496,7 @@ class UserDiskControllerTest extends ApiTestCase
             'bucket' => 'onm',
             'region' => 'us-east-2',
             'endpoint' => 'https://m.example.com',
-        ])
-            ->assertUnprocessable();
+        ])->assertUnprocessable();
 
         $this->mockS3->shouldReceive('canAccessDisk')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
@@ -520,8 +507,7 @@ class UserDiskControllerTest extends ApiTestCase
             'bucket' => 'm',
             'region' => 'us-east-2',
             'endpoint' => 'https://example.com/onm',
-        ])
-            ->assertUnprocessable();
+        ])->assertUnprocessable();
 
         $this->mockS3->shouldReceive('canAccessDisk')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
@@ -532,7 +518,6 @@ class UserDiskControllerTest extends ApiTestCase
             'bucket' => 'onm',
             'region' => 'us-east-2',
             'endpoint' => 'https://example.com/m',
-        ])
-            ->assertUnprocessable();
+        ])->assertUnprocessable();
     }
 }
