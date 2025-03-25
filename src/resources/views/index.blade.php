@@ -3,7 +3,7 @@
 @section('title', 'Your Storage Disks')
 
 @push('styles')
-    <link href="{{ cachebust_asset('vendor/user-disks/styles/main.css') }}" rel="stylesheet">
+    {{vite_hot(base_path('vendor/biigle/user-disks/hot'), ['src/resources/assets/sass/main.scss'], 'vendor/user-disks')}}
 @endpush
 
 @section('storage-content')
