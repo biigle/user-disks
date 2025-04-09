@@ -44,15 +44,15 @@
                     @include("user-disks::update.{$disk->type}")
                 </div>
                 <div class="row">
-                        @error('error')
+                    @error('error')
                         <div class="col-xs-12">
-                                <div class="panel panel-danger">
-                                    <div class="panel-body text-danger">
-                                        {{$message}}
-                                    </div>
+                            <div class="panel panel-danger">
+                                <div class="panel-body text-danger">
+                                    {{$message}}
                                 </div>
+                            </div>
                         </div>
-                        @enderror
+                    @enderror
                     <div class="col-xs-12">
                         @csrf
                         @method('PUT')
