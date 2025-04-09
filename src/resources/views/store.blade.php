@@ -44,14 +44,15 @@
                     </fieldset>
                 @endif
                 <div class="row">
-                    <div class="col-xs-12" @error('error') has-error @enderror>
-                        @error('error')
+                    @error('error')
+                        <div class="col-xs-12">
                             <div class="panel panel-danger">
                                 <div class="panel-body text-danger">
                                     {{$message}}
                                 </div>
                             </div>
-                        @enderror
+                        </div>
+                    @enderror
                     </div>
                     <div class="col-xs-12">
                         @csrf
