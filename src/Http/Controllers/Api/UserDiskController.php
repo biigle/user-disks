@@ -12,7 +12,6 @@ use Illuminate\Validation\ValidationException;
 use Biigle\Modules\UserDisks\Http\Requests\StoreUserDisk;
 use Biigle\Modules\UserDisks\Http\Requests\ExtendUserDisk;
 use Biigle\Modules\UserDisks\Http\Requests\UpdateUserDisk;
-use Biigle\Modules\UserDisks\Exceptions\DiskValidationException;
 
 class UserDiskController extends Controller
 {
@@ -63,9 +62,9 @@ class UserDiskController extends Controller
             return $this->fuzzyRedirect('storage-disks')
                 ->with('message', 'Storage disk created')
                 ->with('messageType', 'success');
-        } catch (DiskValidationException $e) {
+        } catch (ValidationException $e) {
             return $this->fuzzyRedirect()
-                ->withErrors($e->getValidationError())
+                ->withErrors($e->errors())
                 ->withInput();
         }
     }
@@ -112,9 +111,9 @@ class UserDiskController extends Controller
                     ->with('message', 'Storage disk updated')
                     ->with('messageType', 'success');
             }
-        } catch (DiskValidationException $e) {
+        } catch (ValidationException $e) {
             return $this->fuzzyRedirect()
-                ->withErrors($e->getValidationError())
+                ->withErrors($e->errors())
                 ->withInput();
         }
     }
