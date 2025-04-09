@@ -48,14 +48,14 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
                 'type' => 's3',
             ])
             ->assertStatus(422);
 
-        $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andReturn([]);
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
                 'type' => 's3',
@@ -86,7 +86,7 @@ class UserDiskControllerTest extends ApiTestCase
 
     public function testDuplicateNames(){
         $this->beUser();
-        $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andReturn([]);
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -111,7 +111,7 @@ class UserDiskControllerTest extends ApiTestCase
         ->assertStatus(422);
 
         $this->beEditor();
-        $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andReturn([]);
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -127,7 +127,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3RegionEmpty()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andReturn([]);
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
                 'type' => 's3',
@@ -146,14 +146,14 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3PathStyle()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
                 'type' => 's3',
             ])
             ->assertStatus(422);
 
-        $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andReturn([]);
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
                 'type' => 's3',
@@ -200,7 +200,7 @@ class UserDiskControllerTest extends ApiTestCase
         $this->putJson("/api/v1/user-disks/{$disk->id}")->assertStatus(403);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andReturn([]);
         $this->putJson("/api/v1/user-disks/{$disk->id}")->assertStatus(200);
     }
 
@@ -220,7 +220,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andReturn([]);
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
                 'type' => 'unknown',
                 'name' => 'cba',
@@ -261,7 +261,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andReturn([]);
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
                 'endpoint' => 'https://example.com/jkl',
             ])
@@ -277,7 +277,7 @@ class UserDiskControllerTest extends ApiTestCase
         ];
         $this->assertEquals($expect, $disk->options);
 
-        $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andReturn([]);
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
                 'endpoint' => 'https://jkl.example.com/',
             ])
@@ -309,7 +309,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
         $this->be($disk->user);
 
-        $this->mockS3->shouldReceive('canAccessDisk')->once()->andReturn([]);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andReturn([]);
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
                 'name' => 'cba',
                 'key' => '0',
@@ -371,7 +371,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreInvalidS3Config()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -402,7 +402,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'endpoint' => 'https://bucket.example.com',
         ])->assertUnprocessable();
@@ -414,7 +414,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreIncorrectBucketName()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -425,7 +425,7 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable();
 
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -436,7 +436,7 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'http://ucket.example.com',
         ])->assertUnprocessable();
 
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -447,7 +447,7 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'http://example.com/bucket',
         ])->assertUnprocessable();
 
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -476,7 +476,7 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->be($disk->user);
 
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'type' => 'unknown',
             'name' => 'cba',
@@ -487,7 +487,7 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'https://onm.example.com',
         ])->assertUnprocessable();
 
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'type' => 'unknown',
             'name' => 'cba',
@@ -498,7 +498,7 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'https://m.example.com',
         ])->assertUnprocessable();
 
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'type' => 'unknown',
             'name' => 'cba',
@@ -509,7 +509,7 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'https://example.com/onm',
         ])->assertUnprocessable();
 
-        $this->mockS3->shouldReceive('canAccessDisk')->never();
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'type' => 'unknown',
             'name' => 'cba',
