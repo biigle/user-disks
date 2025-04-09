@@ -2,6 +2,7 @@
 
 namespace Biigle\Tests\Modules\UserDisks\Http\Controllers\Api;
 
+use Exception;
 use Mockery;
 use ApiTestCase;
 use Biigle\Modules\UserDisks\UserDisk;
@@ -529,5 +530,401 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'https://example.com/m',
         ])->assertFound()
             ->assertSessionHasErrors(['endpoint']);
+    }
+
+    public function testStoreDiskAccessTimeout()
+    {
+        $this->beUser();
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Timeout error'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some timeout error'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+    }
+
+    public function testStoreInvalidEndpoint()
+    {
+        $this->beUser();
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some cURL error'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some curl error'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Error parsing XML'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some error parsing xml'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['endpoint']);
+    }
+
+    public function testStoreInvalidBucket()
+    {
+        $this->beUser();
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error AccessDenied'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error accessDenied'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchBucket'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchBucket'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchKey'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchKey'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+    }
+
+    public function testStoreInvalidDiskConfig()
+    {
+        $this->beUser();
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some other error'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+    }
+
+    public function testUpdateDiskAccessTimeout()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 's3',
+            'name' => 'abc',
+            'options' => [
+                'key' => 'def',
+                'secret' => 'ghi',
+                'bucket' => 'jkl',
+                'region' => 'us-east-1',
+                'endpoint' => 'https://jkl.example.com',
+                'use_path_style_endpoint' => false,
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Timeout error'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some timeout error'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+    }
+
+    public function testUpdateInvalidEndpoint()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 's3',
+            'name' => 'abc',
+            'options' => [
+                'key' => 'def',
+                'secret' => 'ghi',
+                'bucket' => 'jkl',
+                'region' => 'us-east-1',
+                'endpoint' => 'https://jkl.example.com',
+                'use_path_style_endpoint' => false,
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some cURL error'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some curl error'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Error parsing XML'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some error parsing xml'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['endpoint']);
+    }
+
+    public function testUpdateInvalidBucket()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 's3',
+            'name' => 'abc',
+            'options' => [
+                'key' => 'def',
+                'secret' => 'ghi',
+                'bucket' => 'jkl',
+                'region' => 'us-east-1',
+                'endpoint' => 'https://jkl.example.com',
+                'use_path_style_endpoint' => false,
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error AccessDenied'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error accessDenied'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchBucket'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchBucket'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchKey'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchKey'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
+    }
+
+    public function testUpdateInvalidDiskConfig()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 's3',
+            'name' => 'abc',
+            'options' => [
+                'key' => 'def',
+                'secret' => 'ghi',
+                'bucket' => 'jkl',
+                'region' => 'us-east-1',
+                'endpoint' => 'https://jkl.example.com',
+                'use_path_style_endpoint' => false,
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some other error'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertFound()
+            ->assertSessionHasErrors(['error']);
     }
 }
