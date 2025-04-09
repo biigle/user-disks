@@ -185,7 +185,7 @@ class UserDiskController extends Controller
         }
 
         try {
-            $this->canAccessDisk($disk);
+            $this->validateDiskAccess($disk);
         } catch (Exception $e) {
             $msg = $e->getMessage();
 
@@ -202,7 +202,14 @@ class UserDiskController extends Controller
         return;
     }
 
-    protected function canAccessDisk($disk)
+    /**
+     * Checks if the endpoint url is valid and the disk can be accessed
+     * 
+     * @param mixed $disk Disk configured by the user that should be tested
+     * @return void
+     * @throws Exception If the disk cannot be accessed
+     */
+    protected function validateDiskAccess($disk)
     {
         $disk = Storage::disk("disk-{$disk->id}");
         $files = $disk->getAdapter()->listContents('', false);
