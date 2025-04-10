@@ -90,7 +90,7 @@ class UserDiskController extends Controller
      * @apiParam (S3 attributes that can be updated) {Boolean} use_path_style_endpoint Set to `true` to use the S3 "path style endpoint" (e.g. `https://s3.example.com/BUCKETNAME`) instead of the subdomain-style (e.g. `https://BUCKETNAME.s3.example.com`).
      *
      * @param UpdateUserDisk $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(UpdateUserDisk $request)
     {
@@ -154,7 +154,7 @@ class UserDiskController extends Controller
      * @apiParam {Number} id The storage disk ID.
      *
      * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy($id)
     {
@@ -178,7 +178,7 @@ class UserDiskController extends Controller
         $endpoint = $options['endpoint'];
         $bucket = $options['bucket'];
 
-        // Check if endpoint contains bucket name
+        // Check whether the endpoint contains the bucket name
         if (!preg_match("/(\b\/" . $bucket . "\.|\b" . $bucket . "\b)/", $endpoint)) {
             throw ValidationException::withMessages(['endpoint' => 'The endpoint URL must contain the bucket name. Please check if the name is present and spelled correctly.']);
         }
@@ -202,9 +202,9 @@ class UserDiskController extends Controller
     }
 
     /**
-     * Checks if the endpoint url is valid and the disk can be accessed
+     * Checks whether the endpoint URL is valid and the disk is accessible
      * 
-     * @param mixed $disk Disk configured by the user that should be tested
+     * @param mixed $disk The disk configured by the user that should be accessed
      * @return void
      * @throws Exception If the disk cannot be accessed
      */
@@ -212,7 +212,7 @@ class UserDiskController extends Controller
     {
         $disk = Storage::disk("disk-{$disk->id}");
         $files = $disk->getAdapter()->listContents('', false);
-        // Need to access an element to check if endpoint url is valid
+        // Need to access an element to verify whether the endpoint URL is valid
         $files->current();
     }
 }
