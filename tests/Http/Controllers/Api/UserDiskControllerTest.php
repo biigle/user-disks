@@ -54,7 +54,8 @@ class UserDiskControllerTest extends ApiTestCase
                 'name' => 'my disk',
                 'type' => 's3',
             ])
-            ->assertStatus(422);
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['bucket', 'endpoint', 'key', 'secret']);
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once();
         $this->postJson("/api/v1/user-disks", [
@@ -109,7 +110,8 @@ class UserDiskControllerTest extends ApiTestCase
             'region' => 'us-east-1',
             'endpoint' => 'http://bucket.example.com',
         ])
-        ->assertStatus(422);
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('name');
 
         $this->beEditor();
         $this->mockS3->shouldReceive('validateDiskAccess')->once();
