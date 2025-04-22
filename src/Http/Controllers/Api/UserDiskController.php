@@ -156,6 +156,15 @@ class UserDiskController extends Controller
                 ->with('messageType', 'success');
         }
     }
+
+    /**
+     * Validates the given user s3 disk configuration
+     * 
+     * @param UserDisk $disk The disk configuration to validate
+     * @throws ValidationException If the disk configuration is invalid
+     * @return void
+     * 
+     */
     protected function validateS3Config(UserDisk $disk)
     {
         if ($disk->type != 's3') {
