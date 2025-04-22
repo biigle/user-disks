@@ -40,33 +40,27 @@ class UserDiskController extends Controller
      */
     public function store(StoreUserDisk $request)
     {
-        try {
-            $disk = DB::transaction(function () use ($request) {
-                $disk = UserDisk::create([
-                    'name' => $request->input('name'),
-                    'type' => $request->input('type'),
-                    'user_id' => $request->user()->id,
-                    'expires_at' => now()->addMonths(config('user_disks.expires_months')),
-                    'options' => $request->getDiskOptions(),
-                ]);
+        $disk = DB::transaction(function () use ($request) {
+            $disk = UserDisk::create([
+                'name' => $request->input('name'),
+                'type' => $request->input('type'),
+                'user_id' => $request->user()->id,
+                'expires_at' => now()->addMonths(config('user_disks.expires_months')),
+                'options' => $request->getDiskOptions(),
+            ]);
 
-                $this->validateS3Config($disk);
+            $this->validateS3Config($disk);
 
-                return $disk;
-            });
+            return $disk;
+        });
 
-            if ($this->isAutomatedRequest()) {
-                return $disk;
-            }
-
-            return $this->fuzzyRedirect('storage-disks')
-                ->with('message', 'Storage disk created')
-                ->with('messageType', 'success');
-        } catch (ValidationException $e) {
-            return $this->fuzzyRedirect()
-                ->withErrors($e->errors())
-                ->withInput();
+        if ($this->isAutomatedRequest()) {
+            return $disk;
         }
+
+        return $this->fuzzyRedirect('storage-disks')
+            ->with('message', 'Storage disk created')
+            ->with('messageType', 'success');
     }
 
     /**
@@ -94,27 +88,21 @@ class UserDiskController extends Controller
      */
     public function update(UpdateUserDisk $request)
     {
-        try {
-            DB::transaction(function () use ($request) {
-                $request->disk->name = $request->input('name', $request->disk->name);
-                $request->disk->options = array_merge(
-                    $request->disk->options,
-                    $request->getDiskOptions()
-                );
+        DB::transaction(function () use ($request) {
+            $request->disk->name = $request->input('name', $request->disk->name);
+            $request->disk->options = array_merge(
+                $request->disk->options,
+                $request->getDiskOptions()
+            );
 
-                $request->disk->save();
-                $this->validateS3Config($request->disk);
-            });
+            $request->disk->save();
+            $this->validateS3Config($request->disk);
+        });
 
-            if (!$this->isAutomatedRequest()) {
-                return $this->fuzzyRedirect()
-                    ->with('message', 'Storage disk updated')
-                    ->with('messageType', 'success');
-            }
-        } catch (ValidationException $e) {
+        if (!$this->isAutomatedRequest()) {
             return $this->fuzzyRedirect()
-                ->withErrors($e->errors())
-                ->withInput();
+                ->with('message', 'Storage disk updated')
+                ->with('messageType', 'success');
         }
     }
 
