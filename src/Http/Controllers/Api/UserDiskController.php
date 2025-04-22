@@ -84,7 +84,7 @@ class UserDiskController extends Controller
      * @apiParam (S3 attributes that can be updated) {Boolean} use_path_style_endpoint Set to `true` to use the S3 "path style endpoint" (e.g. `https://s3.example.com/BUCKETNAME`) instead of the subdomain-style (e.g. `https://BUCKETNAME.s3.example.com`).
      *
      * @param UpdateUserDisk $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\Response
      */
     public function update(UpdateUserDisk $request)
     {
@@ -142,7 +142,7 @@ class UserDiskController extends Controller
      * @apiParam {Number} id The storage disk ID.
      *
      * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
