@@ -36,6 +36,7 @@ class UserDiskController extends Controller
      * @apiParam (S3 optional arguments) {Boolean} use_path_style_endpoint Set to `true` to use the S3 "path style endpoint" (e.g. `https://s3.example.com/BUCKETNAME`) instead of the subdomain-style (e.g. `https://BUCKETNAME.s3.example.com`). Default: `false`.
      *
      * @param StoreUserDisk $request
+     * @throws ValidationException if the disk configuration is invalid
      * @return \Illuminate\Http\Response
      */
     public function store(StoreUserDisk $request)
@@ -84,6 +85,7 @@ class UserDiskController extends Controller
      * @apiParam (S3 attributes that can be updated) {Boolean} use_path_style_endpoint Set to `true` to use the S3 "path style endpoint" (e.g. `https://s3.example.com/BUCKETNAME`) instead of the subdomain-style (e.g. `https://BUCKETNAME.s3.example.com`).
      *
      * @param UpdateUserDisk $request
+     * @throws ValidationException if the disk configuration is invalid
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateUserDisk $request)
