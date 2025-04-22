@@ -186,13 +186,13 @@ class UserDiskController extends Controller
             $msg = $e->getMessage();
 
             if (Str::contains($msg, 'timeout', true)) {
-                throw  ValidationException::withMessages(['error' => 'The endpoint URL could not be accessed. Does it exist?']);
+                throw ValidationException::withMessages(['error' => 'The endpoint URL could not be accessed. Does it exist?']);
             } elseif (Str::contains($msg, ['cURL error', 'Error parsing XML'], true)) {
-                throw  ValidationException::withMessages(['endpoint' => 'This does not seem to be a valid S3 endpoint.']);
+                throw ValidationException::withMessages(['endpoint' => 'This does not seem to be a valid S3 endpoint.']);
             } elseif (Str::contains($msg, ["AccessDenied", "NoSuchBucket", "NoSuchKey"], true)) {
-                throw  ValidationException::withMessages(['error' => 'The bucket could not be accessed. Please check for typos or missing access permissions.']);
+                throw ValidationException::withMessages(['error' => 'The bucket could not be accessed. Please check for typos or missing access permissions.']);
             } else {
-                throw  ValidationException::withMessages(['error' => 'An error occurred. Please check if your input is correct.']);
+                throw ValidationException::withMessages(['error' => 'An error occurred. Please check if your input is correct.']);
             }
         }
         return;
