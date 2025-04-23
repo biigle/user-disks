@@ -225,7 +225,6 @@ class UserDiskControllerTest extends ApiTestCase
         $this->be($disk->user);
         $this->mockS3->shouldReceive('validateDiskAccess')->once();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-                'type' => 'unknown',
                 'name' => 'cba',
                 'key' => 'fed',
                 'secret' => 'ihg',
@@ -487,7 +486,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -499,7 +497,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -511,7 +508,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -523,7 +519,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -749,7 +744,6 @@ class UserDiskControllerTest extends ApiTestCase
         $this->be($disk->user);
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Timeout error'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -761,7 +755,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some timeout error'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -790,7 +783,6 @@ class UserDiskControllerTest extends ApiTestCase
         $this->be($disk->user);
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some cURL error'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -802,7 +794,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some curl error'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -814,7 +805,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Error parsing XML'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -826,7 +816,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some error parsing xml'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -855,7 +844,6 @@ class UserDiskControllerTest extends ApiTestCase
         $this->be($disk->user);
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error AccessDenied'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -867,7 +855,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error accessDenied'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -879,7 +866,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchBucket'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -891,7 +877,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchBucket'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -903,7 +888,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchKey'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -915,7 +899,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchKey'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -928,7 +911,6 @@ class UserDiskControllerTest extends ApiTestCase
         // bucket does not exist
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error InvalidAccessKeyId'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -940,7 +922,6 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error invalidAccessKeyId'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
@@ -969,7 +950,6 @@ class UserDiskControllerTest extends ApiTestCase
         $this->be($disk->user);
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some other error'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 'unknown',
             'name' => 'cba',
             'key' => 'fed',
             'secret' => 'ihg',
