@@ -688,6 +688,31 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
+
+        // bucket does not exist
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error InvalidAccessKeyId'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error invalidAccessKeyId'));
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['error']);
     }
 
     public function testStoreInvalidDiskConfig()
@@ -889,6 +914,31 @@ class UserDiskControllerTest extends ApiTestCase
             ->assertJsonValidationErrors(['error']);
 
         $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchKey'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['error']);
+
+        // bucket does not exist
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error InvalidAccessKeyId'));
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 'unknown',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://onm.example.com',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['error']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error invalidAccessKeyId'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'type' => 'unknown',
             'name' => 'cba',
