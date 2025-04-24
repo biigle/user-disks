@@ -177,8 +177,8 @@ class UserDiskController extends Controller
         $endpoint = $options['endpoint'];
         $bucket = $options['bucket'];
 
-        // Check whether the endpoint contains the bucket name
-        if (!preg_match("/(\b\/" . $bucket . "\.|\b" . $bucket . "\b)/", $endpoint)) {
+        // Check whether the endpoint contains the bucket name at the beginning or end of url
+        if (!preg_match("/(\/\/\b{$bucket}\.|\w\/\b{$bucket}($|\/)\b)/", $endpoint)) {
             throw ValidationException::withMessages(['endpoint' => 'The endpoint URL must contain the bucket name. Please check if the name is present and spelled correctly.']);
         }
 
