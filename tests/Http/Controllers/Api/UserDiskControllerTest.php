@@ -415,7 +415,7 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals('https://jkl.example.com', $disk->options['endpoint']);
     }
 
-    public function testStoreIncorrectBucketName()
+    public function testStoreBucketName()
     {
         $this->beUser();
         $this->mockS3->shouldReceive('validateDiskAccess')->never();
@@ -465,9 +465,67 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'http://example.com/ucket',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket .example.com/',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://example.com/bucket.',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket/example.com/.',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk1',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://example.com/bucket',
+        ])->assertSuccessful();
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk2',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'http://bucket.example.com',
+        ])->assertSuccessful();
     }
 
-    public function testUpdateIncorrectBucketName()
+    public function testUpdateBucketName()
     {
         $disk = UserDisk::factory()->create([
             'type' => 's3',
@@ -527,6 +585,64 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'https://example.com/m',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 's3',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'bucket',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://example.com/bucket.',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 's3',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'bucket',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://bucket .example.com/',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 's3',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'bucket',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://bucket/example.com/',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['endpoint']);
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 's3',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'bucket',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://bucket.example.com/',
+        ])->assertSuccessful();
+
+        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'type' => 's3',
+            'name' => 'cba',
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'bucket',
+            'region' => 'us-east-2',
+            'endpoint' => 'https://example.com/bucket',
+        ])->assertSuccessful();
     }
 
     public function testStoreDiskAccessTimeout()
