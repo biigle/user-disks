@@ -44,6 +44,16 @@
                     </fieldset>
                 @endif
                 <div class="row">
+                    @error('error')
+                        <div class="col-xs-12">
+                            <div class="panel panel-danger">
+                                <div class="panel-body text-danger">
+                                    {{$message}}
+                                </div>
+                            </div>
+                        </div>
+                    @enderror
+                    </div>
                     <div class="col-xs-12">
                         @csrf
                         <div class="form-group clearfix">
