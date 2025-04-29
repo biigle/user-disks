@@ -10,7 +10,7 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "laravel-vite-plugin": "^1.2.0",
     "sass": "^1.15.2",
-    "vite": "^6.2.1",
+    "vite": "^6.3.3",
     "vite-plugin-externalize-dependencies": "^1.0.1"
   },
   "type": "module"
