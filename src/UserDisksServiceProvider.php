@@ -56,7 +56,7 @@ class UserDisksServiceProvider extends ServiceProvider
         }
 
         $this->publishes([
-            __DIR__.'/public/assets' => public_path('vendor/user-disks'),
+            __DIR__.'/public' => public_path('vendor/user-disks'),
         ], 'public');
 
         $this->addStorageConfigResolver();
