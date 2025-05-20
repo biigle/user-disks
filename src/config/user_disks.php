@@ -2,12 +2,9 @@
 
 return [
     /*
-     | Each storage disk type (key must match the enum in the database) with it's full
-     | name as value.
+     | Available types for new storage disks. Supported are: s3, webdav.
      */
-    'types' => [
-        's3' => 'S3',
-    ],
+    'types' => explode(',', env('USER_DISKS_TYPES', 's3')),
 
     /*
     | The default configuration arrays for filesystem disks that are filled differently
@@ -33,6 +30,14 @@ return [
             'secret' => '',
             'endpoint' => '',
         ],
+
+        'webdav' => [
+            'driver' => 'webdav',
+            'baseUri' => '',
+            'userName' => '',
+            'password' => '',
+            'pathPrefix' => '',
+        ],
     ],
 
     /*
@@ -47,6 +52,12 @@ return [
             'key' => 'required',
             'secret' => 'required',
         ],
+
+        'webdav' => [
+            'baseUri' => 'required|url',
+            'userName' => 'required_with:password',
+            'password' => 'required_with:userName',
+        ],
     ],
 
     /*
@@ -60,6 +71,12 @@ return [
             'endpoint' => 'filled|url',
             'key' => 'filled',
             'secret' => 'filled',
+        ],
+
+        'webdav' => [
+            'baseUri' => 'filled|url',
+            'userName' => 'required_with:password',
+            'password' => 'required_with:userName',
         ],
     ],
 

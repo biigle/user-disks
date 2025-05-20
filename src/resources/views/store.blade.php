@@ -15,8 +15,8 @@
                         <div class="form-group @error('type') has-error @enderror">
                             <label>Type</label>
                             <select name="type" required class="form-control" @disabled($chosenType)>
-                                @foreach($types as $type => $description)
-                                    <option value="{{$type}}" @selected($type === $chosenType)>{{$description}}</option>
+                                @foreach($types as $type)
+                                    <option value="{{$type}}" @selected($type === $chosenType)>{{\Biigle\Modules\UserDisks\UserDisk::TYPES[$type]}}</option>
                                 @endforeach
                             </select>
                             @error('type')
@@ -53,7 +53,8 @@
                             </div>
                         </div>
                     @enderror
-                    </div>
+                </div>
+                <div class="row">
                     <div class="col-xs-12">
                         @csrf
                         <div class="form-group clearfix">

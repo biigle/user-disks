@@ -40,6 +40,10 @@ class UserDiskController extends Controller
         $chosenType = $request->input('type');
         $chosenName = $request->input('name');
 
+        if (!is_null($chosenType) && !array_key_exists($chosenType, UserDisk::TYPES)) {
+            abort(404);
+        }
+
         return view('user-disks::store', [
             'types' => config('user_disks.types'),
             'chosenType' => $chosenType,
@@ -62,7 +66,6 @@ class UserDiskController extends Controller
         $dependentVolumes = Volume::where('url', 'like', "disk-{$disk->id}://%")->count();
 
         return view('user-disks::update', [
-            'types' => config('user_disks.types'),
             'disk' => $disk,
             'dependentVolumes' => $dependentVolumes,
         ]);

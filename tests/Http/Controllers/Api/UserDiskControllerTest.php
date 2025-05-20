@@ -10,13 +10,13 @@ use Biigle\Modules\UserDisks\Http\Controllers\Api\UserDiskController;
 
 class UserDiskControllerTest extends ApiTestCase
 {
-    private $mockS3;
+    private $mockController;
 
     public function setUp(): void
     {
         parent::setUp();
-        $this->mockS3 = Mockery::mock(UserDiskController::class)->shouldAllowmockingProtectedMethods()->makePartial();
-        $this->app->instance(UserDiskController::class, $this->mockS3);
+        $this->mockController = Mockery::mock(UserDiskController::class)->shouldAllowmockingProtectedMethods()->makePartial();
+        $this->app->instance(UserDiskController::class, $this->mockController);
     }
 
     public function testStore()
@@ -49,7 +49,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
                 'type' => 's3',
@@ -57,7 +57,7 @@ class UserDiskControllerTest extends ApiTestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['bucket', 'endpoint', 'key', 'secret']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
                 'type' => 's3',
@@ -89,7 +89,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3DuplicateNames()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -115,7 +115,7 @@ class UserDiskControllerTest extends ApiTestCase
         ->assertJsonValidationErrors('name');
 
         $this->beEditor();
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -131,7 +131,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3RegionEmpty()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
                 'type' => 's3',
@@ -150,14 +150,14 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3PathStyle()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
                 'type' => 's3',
             ])
             ->assertStatus(422);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->postJson("/api/v1/user-disks", [
                 'name' => 'my disk',
                 'type' => 's3',
@@ -188,7 +188,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3DiskAccessTimeout()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Timeout error'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Timeout error'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -200,7 +200,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some timeout error'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some timeout error'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -216,7 +216,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3InvalidEndpoint()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some cURL error'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some cURL error'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -228,7 +228,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some curl error'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some curl error'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -240,7 +240,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Error parsing XML'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Error parsing XML'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -252,7 +252,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some error parsing xml'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some error parsing xml'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -268,7 +268,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3InvalidBucket()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error AccessDenied'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error AccessDenied'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -280,7 +280,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error accessDenied'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error accessDenied'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -292,7 +292,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchBucket'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchBucket'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -304,7 +304,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchBucket'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchBucket'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -316,7 +316,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchKey'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchKey'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -328,7 +328,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchKey'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchKey'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -341,7 +341,7 @@ class UserDiskControllerTest extends ApiTestCase
             ->assertJsonValidationErrors(['error']);
 
         // bucket does not exist
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error InvalidAccessKeyId'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error InvalidAccessKeyId'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -353,7 +353,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error invalidAccessKeyId'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error invalidAccessKeyId'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -369,7 +369,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3InvalidDiskConfig()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some other error'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some other error'));
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -385,7 +385,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3InvalidConfig()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -405,7 +405,7 @@ class UserDiskControllerTest extends ApiTestCase
     public function testStoreS3BucketName()
     {
         $this->beUser();
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -417,7 +417,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -429,7 +429,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -441,7 +441,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -453,7 +453,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -465,7 +465,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -477,7 +477,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk',
             'type' => 's3',
@@ -489,7 +489,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk1',
             'type' => 's3',
@@ -500,7 +500,7 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'http://example.com/bucket',
         ])->assertSuccessful();
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->postJson("/api/v1/user-disks", [
             'name' => 'my disk2',
             'type' => 's3',
@@ -510,6 +510,83 @@ class UserDiskControllerTest extends ApiTestCase
             'region' => '',
             'endpoint' => 'http://bucket.example.com',
         ])->assertSuccessful();
+    }
+
+    public function testStoreWebDAV()
+    {
+        $this->beUser();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'webdav',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['type']);
+
+        config(['user_disks.types' => ['webdav']]);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'webdav',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['baseUri']);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'webdav',
+                'baseUri' => 'https://example.com',
+                'userName' => 'joe',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['password']);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'webdav',
+                'baseUri' => 'https://example.com',
+                'password' => 'secret',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['userName']);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'webdav',
+                'baseUri' => 'https://example.com',
+                'userName' => 'joe',
+                'password' => 'secret',
+            ])
+            ->assertStatus(201);
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNotNull($disk);
+        $this->assertEquals('my disk', $disk->name);
+        $this->assertEquals('webdav', $disk->type);
+        $this->assertNotNull($disk->expires_at);
+        $expect = [
+            'baseUri' => 'https://example.com',
+            'userName' => 'joe',
+            'password' => 'secret',
+        ];
+        $this->assertEquals($expect, $disk->options);
+    }
+
+    public function testStoreWebDAVNoAuth()
+    {
+        config(['user_disks.types' => ['webdav']]);
+        $this->beUser();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'webdav',
+                'baseUri' => 'https://example.com',
+            ])
+            ->assertStatus(201);
     }
 
     public function testUpdate()
@@ -532,7 +609,7 @@ class UserDiskControllerTest extends ApiTestCase
         $this->putJson("/api/v1/user-disks/{$disk->id}")->assertStatus(403);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->putJson("/api/v1/user-disks/{$disk->id}")->assertStatus(200);
     }
 
@@ -552,7 +629,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
                 'name' => 'cba',
                 'key' => 'fed',
@@ -592,7 +669,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
                 'endpoint' => 'https://example.com/jkl',
             ])
@@ -608,7 +685,7 @@ class UserDiskControllerTest extends ApiTestCase
         ];
         $this->assertEquals($expect, $disk->options);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
                 'endpoint' => 'https://jkl.example.com/',
             ])
@@ -642,7 +719,7 @@ class UserDiskControllerTest extends ApiTestCase
 
         $this->be($disk->user);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -653,7 +730,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -664,7 +741,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -675,7 +752,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -686,7 +763,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'type' => 's3',
             'name' => 'cba',
@@ -698,7 +775,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'type' => 's3',
             'name' => 'cba',
@@ -710,7 +787,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'type' => 's3',
             'name' => 'cba',
@@ -722,7 +799,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'type' => 's3',
             'name' => 'cba',
@@ -733,7 +810,7 @@ class UserDiskControllerTest extends ApiTestCase
             'endpoint' => 'https://bucket.example.com/',
         ])->assertSuccessful();
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'type' => 's3',
             'name' => 'cba',
@@ -761,7 +838,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Timeout error'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Timeout error'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -772,7 +849,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some timeout error'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some timeout error'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -800,7 +877,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some cURL error'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some cURL error'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -811,7 +888,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some curl error'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some curl error'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -822,7 +899,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Error parsing XML'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some Error parsing XML'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -833,7 +910,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some error parsing xml'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some error parsing xml'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -861,7 +938,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error AccessDenied'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error AccessDenied'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -872,7 +949,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error accessDenied'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error accessDenied'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -883,7 +960,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchBucket'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchBucket'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -894,7 +971,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchBucket'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchBucket'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -905,7 +982,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchKey'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error NoSuchKey'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -916,7 +993,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchKey'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error noSuchKey'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -928,7 +1005,7 @@ class UserDiskControllerTest extends ApiTestCase
             ->assertJsonValidationErrors(['error']);
 
         // bucket does not exist
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error InvalidAccessKeyId'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error InvalidAccessKeyId'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -939,7 +1016,7 @@ class UserDiskControllerTest extends ApiTestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error invalidAccessKeyId'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('error invalidAccessKeyId'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -967,7 +1044,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some other error'));
+        $this->mockController->shouldReceive('validateDiskAccess')->once()->andThrow(new Exception('some other error'));
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'name' => 'cba',
             'key' => 'fed',
@@ -995,7 +1072,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
 
         $this->be($disk->user);
-        $this->mockS3->shouldReceive('validateDiskAccess')->never();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'endpoint' => 'https://bucket.example.com',
         ])->assertUnprocessable()
@@ -1020,7 +1097,7 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
         $this->be($disk->user);
 
-        $this->mockS3->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
                 'name' => 'cba',
                 'key' => '0',

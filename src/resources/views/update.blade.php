@@ -27,7 +27,7 @@
                     <div class="col-xs-6">
                         <div class="form-group">
                             <label>Type</label>
-                            <input type="text" name="name" disabled class="form-control" value="{{$types[$disk->type]}}">
+                            <input type="text" name="name" disabled class="form-control" value="{{\Biigle\Modules\UserDisks\UserDisk::TYPES[$disk->type]}}">
                         </div>
                     </div>
                     <div class="col-xs-6">

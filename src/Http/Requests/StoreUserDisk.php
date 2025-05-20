@@ -4,6 +4,7 @@ namespace Biigle\Modules\UserDisks\Http\Requests;
 
 use Biigle\Modules\UserDisks\UserDisk;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreUserDisk extends FormRequest
 {
@@ -24,9 +25,11 @@ class StoreUserDisk extends FormRequest
      */
     public function rules()
     {
+        $types = config('user_disks.types');
+
         return array_merge([
             'name' => 'required',
-            'type' => 'required|in:s3',
+            'type' => ['required', Rule::in($types)],
         ], $this->getTypeValidationRules());
     }
 
