@@ -1110,6 +1110,41 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals('ghi', $disk->options['secret']);
     }
 
+    public function testUpdateWebDAV()
+    {
+        config(['user_disks.types' => ['webdav']]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'webdav',
+            'name' => 'abc',
+            'options' => [
+                'baseUri' => 'https://example.com',
+                'userName' => 'joe',
+                'password' => 'secret',
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'name' => 'cba',
+                'baseUri' => 'https://example.com/dir',
+                'userName' => 'jane',
+                'password' => 'more secret',
+            ])
+            ->assertStatus(200);
+
+        $disk->refresh();
+        $expect = [
+            'baseUri' => 'https://example.com/dir',
+            'userName' => 'jane',
+            'password' => 'more secret',
+        ];
+        $this->assertEquals('webdav', $disk->type);
+        $this->assertEquals('cba', $disk->name);
+        $this->assertEquals($expect, $disk->options);
+    }
+
     public function testExtend()
     {
         config(['user_disks.about_to_expire_weeks' => 4]);
