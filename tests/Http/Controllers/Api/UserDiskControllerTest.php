@@ -589,6 +589,48 @@ class UserDiskControllerTest extends ApiTestCase
             ->assertStatus(201);
     }
 
+    public function testStoreElements()
+    {
+        $this->beUser();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'elements',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['type']);
+
+        config(['user_disks.types' => ['elements']]);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'elements',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['baseUri', 'token']);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'elements',
+                'baseUri' => 'https://example.com',
+                'token' => 'secret',
+            ])
+            ->assertStatus(201);
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNotNull($disk);
+        $this->assertEquals('my disk', $disk->name);
+        $this->assertEquals('elements', $disk->type);
+        $this->assertNotNull($disk->expires_at);
+        $expect = [
+            'baseUri' => 'https://example.com',
+            'token' => 'secret',
+        ];
+        $this->assertEquals($expect, $disk->options);
+    }
+
     public function testUpdate()
     {
         $disk = UserDisk::factory()->create([
@@ -1141,6 +1183,38 @@ class UserDiskControllerTest extends ApiTestCase
             'password' => 'more secret',
         ];
         $this->assertEquals('webdav', $disk->type);
+        $this->assertEquals('cba', $disk->name);
+        $this->assertEquals($expect, $disk->options);
+    }
+
+    public function testUpdateElements()
+    {
+        config(['user_disks.types' => ['elements']]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'elements',
+            'name' => 'abc',
+            'options' => [
+                'baseUri' => 'https://example.com',
+                'token' => 'secret',
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'name' => 'cba',
+                'baseUri' => 'https://example.com/dir',
+                'token' => 'more secret',
+            ])
+            ->assertStatus(200);
+
+        $disk->refresh();
+        $expect = [
+            'baseUri' => 'https://example.com/dir',
+            'token' => 'more secret',
+        ];
+        $this->assertEquals('elements', $disk->type);
         $this->assertEquals('cba', $disk->name);
         $this->assertEquals($expect, $disk->options);
     }

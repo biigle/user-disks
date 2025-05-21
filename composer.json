@@ -11,10 +11,11 @@
     "authors": [
       {
          "name": "Martin Zurowietz",
-         "email": "martin@cebitec.uni-bielefeld.de"
+         "email": "m.zurowietz@uni-bielefeld.de"
       }
     ],
     "require": {
+        "biigle/laravel-elements-storage": "^2.2",
         "league/flysystem-aws-s3-v3": "^3.12",
         "league/flysystem-read-only": "^3.3",
         "singlequote/laravel-webdav": "^1.1"

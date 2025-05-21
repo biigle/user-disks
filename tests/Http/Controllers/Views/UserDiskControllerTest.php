@@ -41,6 +41,12 @@ class UserDiskControllerTest extends ApiTestCase
         $this->get('storage-disks/create?type=webdav&name=abc')->assertStatus(200);
     }
 
+    public function testCreateElements()
+    {
+        $this->beUser();
+        $this->get('storage-disks/create?type=elements&name=abc')->assertStatus(200);
+    }
+
     public function testCreateInvalid()
     {
         $this->beUser();
@@ -75,6 +81,19 @@ class UserDiskControllerTest extends ApiTestCase
                 'baseUri' => 'https://example.com',
                 'userName' => 'joe',
                 'password' => 'secret',
+             ],
+        ]);
+        $this->be($disk->user);
+        $this->get("storage-disks/{$disk->id}")->assertStatus(200);
+    }
+
+    public function testUpdateElements()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 'elements',
+            'options' => [
+                'baseUri' => 'https://example.com',
+                'token' => 'secret',
              ],
         ]);
         $this->be($disk->user);
