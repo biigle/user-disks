@@ -2,7 +2,7 @@
 
 return [
     /*
-     | Available types for new storage disks. Supported are: s3, webdav, elements.
+     | Available types for new storage disks. Supported are: s3, webdav, elements, aruna.
      */
     'types' => array_filter(explode(',', env('USER_DISKS_TYPES', 's3'))),
 
@@ -44,6 +44,24 @@ return [
             'baseUri' => '',
             'token' => '',
         ],
+
+        // Basically the same than S3 above.
+        'aruna' => [
+            'driver' => 's3',
+            'stream_reads' => true,
+            'http' => [
+                'connect_timeout' => 5,
+            ],
+            'throw' => true,
+            'bucket_endpoint' => true,
+            'use_path_style_endpoint' => false,
+            'region' => 'us-east-1',
+            // These should be configured by the user.
+            'bucket' => '',
+            'key' => '',
+            'secret' => '',
+            'endpoint' => '',
+        ],
     ],
 
     /*
@@ -69,6 +87,13 @@ return [
             'baseUri' => 'required|url',
             'token' => 'required',
         ],
+
+        'aruna' => [
+            'bucket' => 'required',
+            'endpoint' => 'required|url',
+            'key' => 'required',
+            'secret' => 'required',
+        ],
     ],
 
     /*
@@ -93,6 +118,13 @@ return [
         'elements' => [
             'baseUri' => 'filled|url',
             'token' => 'filled',
+        ],
+
+        'aruna' => [
+            'bucket' => 'filled',
+            'endpoint' => 'filled|url',
+            'key' => 'filled',
+            'secret' => 'filled',
         ],
     ],
 

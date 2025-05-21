@@ -631,6 +631,53 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals($expect, $disk->options);
     }
 
+    public function testStoreAruna()
+    {
+        $this->beUser();
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'elements',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['type']);
+
+        config(['user_disks.types' => ['aruna']]);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'aruna',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['bucket', 'endpoint', 'key', 'secret']);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'aruna',
+                'key' => 'abc',
+                'secret' => 'abc',
+                'bucket' => 'bucket',
+                'endpoint' => 'http://bucket.example.com',
+            ])
+            ->assertStatus(201);
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNotNull($disk);
+        $this->assertEquals('my disk', $disk->name);
+        $this->assertEquals('aruna', $disk->type);
+        $this->assertNotNull($disk->expires_at);
+        $expect = [
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'endpoint' => 'http://bucket.example.com',
+        ];
+        $this->assertEquals($expect, $disk->options);
+    }
+
     public function testUpdate()
     {
         $disk = UserDisk::factory()->create([
@@ -1215,6 +1262,44 @@ class UserDiskControllerTest extends ApiTestCase
             'token' => 'more secret',
         ];
         $this->assertEquals('elements', $disk->type);
+        $this->assertEquals('cba', $disk->name);
+        $this->assertEquals($expect, $disk->options);
+    }
+
+    public function testUpdateAruna()
+    {
+        config(['user_disks.types' => ['aruna']]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'aruna',
+            'name' => 'abc',
+            'options' => [
+                'key' => 'def',
+                'secret' => 'ghi',
+                'bucket' => 'jkl',
+                'endpoint' => 'https://jkl.example.com',
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'name' => 'cba',
+                'key' => 'fed',
+                'secret' => 'ihg',
+                'bucket' => 'onm',
+                'endpoint' => 'https://onm.example.com',
+            ])
+            ->assertStatus(200);
+
+        $disk->refresh();
+        $expect = [
+            'key' => 'fed',
+            'secret' => 'ihg',
+            'bucket' => 'onm',
+            'endpoint' => 'https://onm.example.com',
+        ];
+        $this->assertEquals('aruna', $disk->type);
         $this->assertEquals('cba', $disk->name);
         $this->assertEquals($expect, $disk->options);
     }

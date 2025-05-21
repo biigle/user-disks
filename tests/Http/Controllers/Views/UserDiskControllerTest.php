@@ -47,6 +47,12 @@ class UserDiskControllerTest extends ApiTestCase
         $this->get('storage-disks/create?type=elements&name=abc')->assertStatus(200);
     }
 
+    public function testCreateAruna()
+    {
+        $this->beUser();
+        $this->get('storage-disks/create?type=aruna&name=abc')->assertStatus(200);
+    }
+
     public function testCreateInvalid()
     {
         $this->beUser();
@@ -94,6 +100,21 @@ class UserDiskControllerTest extends ApiTestCase
             'options' => [
                 'baseUri' => 'https://example.com',
                 'token' => 'secret',
+             ],
+        ]);
+        $this->be($disk->user);
+        $this->get("storage-disks/{$disk->id}")->assertStatus(200);
+    }
+
+    public function testUpdateAruna()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 'aruna',
+            'options' => [
+                'key' => '123',
+                'secret' => '456',
+                'endpoint' => 'aruna.example.com',
+                'bucket' => 'example',
              ],
         ]);
         $this->be($disk->user);
