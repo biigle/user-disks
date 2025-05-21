@@ -52,6 +52,7 @@ class UserDiskController extends Controller
 
             match ($disk->type) {
                 's3' => $this->validateS3Config($disk),
+                'aruna' => $this->validateS3Config($disk),
                 default => $this->validateGenericConfig($disk),
             };
 
@@ -104,6 +105,7 @@ class UserDiskController extends Controller
 
             match ($request->disk->type) {
                 's3' => $this->validateS3Config($request->disk),
+                'aruna' => $this->validateS3Config($request->disk),
                 default => $this->validateGenericConfig($request->disk),
             };
         });

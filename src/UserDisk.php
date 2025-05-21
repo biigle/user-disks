@@ -18,6 +18,7 @@ class UserDisk extends Model
         's3' => 'S3',
         'webdav' => 'WebDAV',
         'elements' => 'Elements',
+        'aruna' => 'Aruna',
     ];
 
     /**

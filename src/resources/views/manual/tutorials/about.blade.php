@@ -60,9 +60,9 @@
                     <a href="#elements">Elements</a>
                 </li>
             @endif
-            @if(in_array('s3', config('user_disks.types')))
+            @if(in_array('aruna', config('user_disks.types')))
                 <li>
-                    <a href="#aos">Aruna Object Storage</a>
+                    <a href="#aruna">Aruna</a>
                 </li>
             @endif
             @if(empty(config('user_disks.types')))
@@ -84,8 +84,8 @@
             @include("user-disks::manual.types.elements")
         @endif
 
-        @if(in_array('s3', config('user_disks.types')))
-            @include("user-disks::manual.types.aos")
+        @if(in_array('aruna', config('user_disks.types')))
+            @include("user-disks::manual.types.aruna")
         @endif
     </div>
 @endsection
