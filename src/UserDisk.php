@@ -12,6 +12,14 @@ class UserDisk extends Model
     use HasFactory;
 
     /**
+     * Map of type key to type name/description.
+     */
+    const TYPES = [
+        's3' => 'S3',
+        'webdav' => 'WebDAV',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array

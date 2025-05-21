@@ -50,7 +50,10 @@ class UserDiskController extends Controller
                 'options' => $request->getDiskOptions(),
             ]);
 
-            $this->validateS3Config($disk);
+            match ($disk->type) {
+                's3' => $this->validateS3Config($disk),
+                default => $this->validateGenericConfig($disk),
+            };
 
             return $disk;
         });
@@ -98,7 +101,11 @@ class UserDiskController extends Controller
             );
 
             $request->disk->save();
-            $this->validateS3Config($request->disk);
+
+            match ($request->disk->type) {
+                's3' => $this->validateS3Config($request->disk),
+                default => $this->validateGenericConfig($request->disk),
+            };
         });
 
         if (!$this->isAutomatedRequest()) {
@@ -161,18 +168,14 @@ class UserDiskController extends Controller
 
     /**
      * Validates the given user s3 disk configuration
-     * 
+     *
      * @param UserDisk $disk The disk configuration to validate
      * @throws ValidationException If the disk configuration is invalid
      * @return void
-     * 
+     *
      */
     protected function validateS3Config(UserDisk $disk)
     {
-        if ($disk->type != 's3') {
-            return;
-        }
-
         $options = $disk->options;
         $endpoint = $options['endpoint'];
         $bucket = $options['bucket'];
@@ -197,7 +200,23 @@ class UserDiskController extends Controller
                 throw ValidationException::withMessages(['error' => 'An error occurred. Please check if your input is correct.']);
             }
         }
-        return;
+    }
+
+    /**
+     * Validates the given user disk configuration
+     *
+     * @param UserDisk $disk The disk configuration to validate
+     * @throws ValidationException If the disk configuration is invalid
+     * @return void
+     *
+     */
+    protected function validateGenericConfig(UserDisk $disk)
+    {
+        try {
+            $this->validateDiskAccess($disk);
+        } catch (Exception $e) {
+            throw ValidationException::withMessages(['error' => 'The configuration seems to be invalid.']);
+        }
     }
 
     /**

@@ -24,7 +24,6 @@ return new class extends Migration {
         Schema::table('user_disks', function (Blueprint $table) {
             $table->dropUnique('user_disks_name_user_id_unique');
             $table->unique('name');
-            
         });
     }
 };
