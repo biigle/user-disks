@@ -4,7 +4,7 @@ return [
     /*
      | Available types for new storage disks. Supported are: s3, webdav.
      */
-    'types' => explode(',', env('USER_DISKS_TYPES', 's3')),
+    'types' => array_filter(explode(',', env('USER_DISKS_TYPES', 's3'))),
 
     /*
     | The default configuration arrays for filesystem disks that are filled differently

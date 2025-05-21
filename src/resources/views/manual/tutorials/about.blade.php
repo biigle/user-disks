@@ -60,7 +60,7 @@
                     <a href="#aos">Aruna Object Storage</a>
                 </li>
             @endif
-            @if(empty(array_filter(config('user_disks.types'))))
+            @if(empty(config('user_disks.types')))
                 <li class="text-muted">
                     No types are available. Please ask your administrator for help.
                 </li>
