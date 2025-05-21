@@ -2,7 +2,7 @@
 
 return [
     /*
-     | Available types for new storage disks. Supported are: s3, webdav.
+     | Available types for new storage disks. Supported are: s3, webdav, elements.
      */
     'types' => array_filter(explode(',', env('USER_DISKS_TYPES', 's3'))),
 
@@ -38,6 +38,12 @@ return [
             'password' => '',
             'pathPrefix' => '',
         ],
+
+        'elements' => [
+            'driver' => 'elements',
+            'baseUri' => '',
+            'token' => '',
+        ],
     ],
 
     /*
@@ -58,6 +64,11 @@ return [
             'userName' => 'required_with:password',
             'password' => 'required_with:userName',
         ],
+
+        'elements' => [
+            'baseUri' => 'required|url',
+            'token' => 'required',
+        ],
     ],
 
     /*
@@ -77,6 +88,11 @@ return [
             'baseUri' => 'filled|url',
             'userName' => 'required_with:password',
             'password' => 'required_with:userName',
+        ],
+
+        'elements' => [
+            'baseUri' => 'filled|url',
+            'token' => 'filled',
         ],
     ],
 

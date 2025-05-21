@@ -17,6 +17,7 @@ class UserDisk extends Model
     const TYPES = [
         's3' => 'S3',
         'webdav' => 'WebDAV',
+        'elements' => 'Elements',
     ];
 
     /**

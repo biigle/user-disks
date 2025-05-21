@@ -55,6 +55,11 @@
                     <a href="#webdav">WebDAV</a>
                 </li>
             @endif
+            @if(in_array('elements', config('user_disks.types')))
+                <li>
+                    <a href="#elements">Elements</a>
+                </li>
+            @endif
             @if(in_array('s3', config('user_disks.types')))
                 <li>
                     <a href="#aos">Aruna Object Storage</a>
@@ -73,6 +78,10 @@
 
         @if(in_array('webdav', config('user_disks.types')))
             @include("user-disks::manual.types.webdav")
+        @endif
+
+        @if(in_array('elements', config('user_disks.types')))
+            @include("user-disks::manual.types.elements")
         @endif
 
         @if(in_array('s3', config('user_disks.types')))
