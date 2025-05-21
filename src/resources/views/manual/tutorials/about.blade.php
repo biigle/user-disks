@@ -40,8 +40,43 @@
             </div>
         </div>
 
-        @include("user-disks::manual.types.s3")
+        <p>
+            These storage disk types are available:
+        </p>
 
-        @include("user-disks::manual.types.aos")
+        <ul>
+            @if(in_array('s3', config('user_disks.types')))
+                <li>
+                    <a href="#s3">S3</a>
+                </li>
+            @endif
+            @if(in_array('webdav', config('user_disks.types')))
+                <li>
+                    <a href="#webdav">WebDAV</a>
+                </li>
+            @endif
+            @if(in_array('s3', config('user_disks.types')))
+                <li>
+                    <a href="#aos">Aruna Object Storage</a>
+                </li>
+            @endif
+            @if(empty(array_filter(config('user_disks.types'))))
+                <li class="text-muted">
+                    No types are available. Please ask your administrator for help.
+                </li>
+            @endif
+        </ul>
+
+        @if(in_array('s3', config('user_disks.types')))
+            @include("user-disks::manual.types.s3")
+        @endif
+
+        @if(in_array('webdav', config('user_disks.types')))
+            @include("user-disks::manual.types.webdav")
+        @endif
+
+        @if(in_array('s3', config('user_disks.types')))
+            @include("user-disks::manual.types.aos")
+        @endif
     </div>
 @endsection
