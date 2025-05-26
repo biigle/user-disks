@@ -589,6 +589,23 @@ class UserDiskControllerTest extends ApiTestCase
             ->assertStatus(201);
     }
 
+    public function testStoreWebDAVPrefix()
+    {
+        config(['user_disks.types' => ['webdav']]);
+        $this->beUser();
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'webdav',
+                'baseUri' => 'https://example.com/remote.php/dav/files/joe',
+            ])
+            ->assertStatus(201);
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertSame('https://example.com/', $disk->options['baseUri']);
+        $this->assertSame('remote.php/dav/files/joe', $disk->options['pathPrefix']);
+    }
+
     public function testStoreElements()
     {
         $this->beUser();
@@ -1217,7 +1234,7 @@ class UserDiskControllerTest extends ApiTestCase
         $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
                 'name' => 'cba',
-                'baseUri' => 'https://example.com/dir',
+                'baseUri' => 'https://dir.example.com/',
                 'userName' => 'jane',
                 'password' => 'more secret',
             ])
@@ -1225,13 +1242,39 @@ class UserDiskControllerTest extends ApiTestCase
 
         $disk->refresh();
         $expect = [
-            'baseUri' => 'https://example.com/dir',
+            'baseUri' => 'https://dir.example.com/',
             'userName' => 'jane',
             'password' => 'more secret',
         ];
         $this->assertEquals('webdav', $disk->type);
         $this->assertEquals('cba', $disk->name);
         $this->assertEquals($expect, $disk->options);
+    }
+
+    public function testUpdateWebDAVPrefix()
+    {
+        config(['user_disks.types' => ['webdav']]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'webdav',
+            'name' => 'abc',
+            'options' => [
+                'baseUri' => 'https://example.com',
+                'userName' => 'joe',
+                'password' => 'secret',
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'baseUri' => 'https://example.com/dir',
+            ])
+            ->assertStatus(200);
+
+        $disk->refresh();
+        $this->assertSame('https://example.com/', $disk->options['baseUri']);
+        $this->assertSame('dir', $disk->options['pathPrefix']);
     }
 
     public function testUpdateElements()

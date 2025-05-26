@@ -1,7 +1,7 @@
 <div class="col-xs-12">
     <div class="form-group @error('baseUri') has-error @enderror">
         <label>Base URI</label>
-        <input type="url" name="baseUri" required class="form-control" value="{{old('baseUri')}}" placeholder="https://example.com/webdav">
+        <input type="url" name="baseUri" required class="form-control" value="{{old('baseUri').old('pathPrefix')}}" placeholder="https://example.com/webdav">
         @error('baseUri')
             <p class="help-block">{{$message}}</p>
         @else

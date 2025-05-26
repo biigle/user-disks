@@ -4,6 +4,7 @@ namespace Biigle\Modules\UserDisks\Http\Requests;
 
 use Biigle\Modules\UserDisks\UserDisk;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Uri;
 use Illuminate\Validation\Rule;
 
 class StoreUserDisk extends FormRequest
@@ -71,5 +72,23 @@ class StoreUserDisk extends FormRequest
                 $validator->errors()->add('name', 'Disk name already exists');
             }
         });
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->input('type') === 'webdav' && $this->has('baseUri')) {
+            $uri = Uri::of($this->input('baseUri'));
+            $path = $uri->path();
+            if ($path && $path !== '/') {
+                $this->merge([
+                    'baseUri' => (string) $uri->withPath(''),
+                    'pathPrefix' => $path,
+                ]);
+            }
+
+        }
     }
 }
