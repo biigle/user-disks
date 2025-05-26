@@ -81,6 +81,7 @@ return [
             'baseUri' => 'required|url',
             'userName' => 'required_with:password',
             'password' => 'required_with:userName',
+            'pathPrefix' => 'filled',
         ],
 
         'elements' => [
@@ -113,6 +114,7 @@ return [
             'baseUri' => 'filled|url',
             'userName' => 'required_with:password',
             'password' => 'required_with:userName',
+            'pathPrefix' => 'filled',
         ],
 
         'elements' => [

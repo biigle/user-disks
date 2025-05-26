@@ -4,6 +4,7 @@ namespace Biigle\Modules\UserDisks\Http\Requests;
 
 use Biigle\Modules\UserDisks\UserDisk;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Uri;
 
 class UpdateUserDisk extends FormRequest
 {
@@ -21,8 +22,6 @@ class UpdateUserDisk extends FormRequest
      */
     public function authorize()
     {
-        $this->disk = UserDisk::findOrFail($this->route('id'));
-
         return $this->user()->can('update', $this->disk);
     }
 
@@ -55,8 +54,22 @@ class UpdateUserDisk extends FormRequest
      */
     protected function prepareForValidation()
     {
+        $this->disk = UserDisk::findOrFail($this->route('id'));
+
         // Remove empty fields.
         $this->replace(array_filter($this->all(), fn ($value) => !is_null($value)));
+
+        if ($this->disk->type === 'webdav' && $this->has('baseUri')) {
+            $uri = Uri::of($this->input('baseUri'));
+            $path = $uri->path();
+            if ($path && $path !== '/') {
+                $this->merge([
+                    'baseUri' => (string) $uri->withPath(''),
+                    'pathPrefix' => $path,
+                ]);
+            }
+
+        }
     }
 
     /**
