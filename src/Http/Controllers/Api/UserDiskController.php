@@ -22,9 +22,9 @@ class UserDiskController extends Controller
      * @apiGroup StorageDisks
      * @apiName StoreStorageDisk
      * @apiPermission editor
-     * @apiDescription Depending on the storage disk type, different additional arguments are required.
+     * @apiDescription Depending on the storage disk type, different additional arguments are required. Not all storage disk types listed here may be enabled for your BIIGLE instance.
      *
-     * @apiParam (Required arguments) {String} type The storage disk type. One of `s3` or `aos`.
+     * @apiParam (Required arguments) {String} type The storage disk type. One of `s3`, `webdav`, 'elements' or 'aruna'.
      * @apiParam (Required arguments) {String} name The name of the storage disk.
      *
      * @apiParam (S3 required arguments) {String} key The S3 access key.
@@ -33,7 +33,19 @@ class UserDiskController extends Controller
      * @apiParam (S3 required arguments) {String} region The S3 region. Example: `us-east-1`.
      * @apiParam (S3 required arguments) {String} endpoint The S3 endpoint URL. Example `https://s3.example.com`.
      *
-     * @apiParam (S3 optional arguments) {Boolean} use_path_style_endpoint Set to `true` to use the S3 "path style endpoint" (e.g. `https://s3.example.com/BUCKETNAME`) instead of the subdomain-style (e.g. `https://BUCKETNAME.s3.example.com`). Default: `false`.
+     * @apiParam (WebDAV required arguments) {String} baseUri The base URI of the WebDAV server.
+     *
+     * @apiParam (WebDAV optional arguments) {String} userName User name for authentication. Required if a password is given.
+     * @apiParam (WebDAV optional arguments) {String} password Password for authentication. Required if a user name is given.
+     * @apiParam (WebDAV optional arguments) {String} pathPrefix Path prefix to use for all requests. If your baseUri contains a path, it is automatically used as pathPrefix.
+     *
+     * @apiParam (Elements required arguments) {String} baseUri The base URI of the Elements server.
+     * @apiParam (Elements required arguments) {String} token The Elements API token.
+     *
+     * @apiParam (Aruna required arguments) {String} endpoint The Aruna data proxy endpoint URL.
+     * @apiParam (Aruna required arguments) {String} bucket The Aruna project name.
+     * @apiParam (Aruna required arguments) {String} key The Aruna S3 access key.
+     * @apiParam (Aruna required arguments) {String} secret The Aruna S3 secret key.
      *
      * @param StoreUserDisk $request
      * @throws ValidationException if the disk configuration is invalid
@@ -86,7 +98,20 @@ class UserDiskController extends Controller
      * @apiParam (S3 attributes that can be updated) {String} bucket The S3 bucket name.
      * @apiParam (S3 attributes that can be updated) {String} region The S3 region. Example: `us-east-1`.
      * @apiParam (S3 attributes that can be updated) {String} endpoint The S3 endpoint URL. Example `https://s3.example.com`.
-     * @apiParam (S3 attributes that can be updated) {Boolean} use_path_style_endpoint Set to `true` to use the S3 "path style endpoint" (e.g. `https://s3.example.com/BUCKETNAME`) instead of the subdomain-style (e.g. `https://BUCKETNAME.s3.example.com`).
+     *
+     *
+     * @apiParam (WebDAV attributes that can be updated) {String} baseUri The base URI of the WebDAV server.
+     * @apiParam (WebDAV attributes that can be updated) {String} userName User name for authentication. Required if a password is given.
+     * @apiParam (WebDAV attributes that can be updated) {String} password Password for authentication. Required if a user name is given.
+     * @apiParam (WebDAV attributes that can be updated) {String} pathPrefix Path prefix to use for all requests. If your baseUri contains a path, it is automatically used as pathPrefix.
+     *
+     * @apiParam (Elements attributes that can be updated) {String} baseUri The base URI of the Elements server.
+     * @apiParam (Elements attributes that can be updated) {String} token The Elements API token.
+     *
+     * @apiParam (Aruna attributes that can be updated) {String} endpoint The Aruna data proxy endpoint URL.
+     * @apiParam (Aruna attributes that can be updated) {String} bucket The Aruna project name.
+     * @apiParam (Aruna attributes that can be updated) {String} key The Aruna S3 access key.
+     * @apiParam (Aruna attributes that can be updated) {String} secret The Aruna S3 secret key.
      *
      * @param UpdateUserDisk $request
      * @throws ValidationException if the disk configuration is invalid
