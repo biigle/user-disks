@@ -18,7 +18,7 @@
         "biigle/laravel-elements-storage": "^2.2",
         "league/flysystem-aws-s3-v3": "^3.12",
         "league/flysystem-read-only": "^3.3",
-        "singlequote/laravel-webdav": "^1.1"
+        "biigle/laravel-webdav": "^1.0"
     },
     "autoload": {
       "psr-4": {
