@@ -2,16 +2,19 @@
 
 namespace Biigle\Modules\UserDisks\Http\Controllers\Api;
 
-use Exception;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use Biigle\Modules\UserDisks\UserDisk;
-use Illuminate\Support\Facades\Storage;
 use Biigle\Http\Controllers\Api\Controller;
-use Illuminate\Validation\ValidationException;
-use Biigle\Modules\UserDisks\Http\Requests\StoreUserDisk;
 use Biigle\Modules\UserDisks\Http\Requests\ExtendUserDisk;
+use Biigle\Modules\UserDisks\Http\Requests\StoreUserDisk;
 use Biigle\Modules\UserDisks\Http\Requests\UpdateUserDisk;
+use Biigle\Modules\UserDisks\UserDisk;
+use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class UserDiskController extends Controller
 {
@@ -53,13 +56,65 @@ class UserDiskController extends Controller
      */
     public function store(StoreUserDisk $request)
     {
-        $disk = DB::transaction(function () use ($request) {
+        if ($request->input('type') === 'dcache') {
+            $request->session()->put('dcache-disk-name', $request->input('name'));
+
+            return Socialite::driver('haai-dcache')
+                ->setScopes(['openid', 'email', 'profile', 'offline_access'])
+                ->redirect();
+        }
+
+        return $this->validateAndCreateDisk($request->input('name'), $request->input('type'), $request->user()->id, $request->getDiskOptions());
+    }
+
+    public function storeDCacheCallback(Request $request)
+    {
+        try {
+            $user = Socialite::driver('haai-dcache')->user();
+        } catch (Exception $e) {
+            throw $e;
+        }
+        $name = $request->session()->pull('dcache-disk-name');
+        $token = $user->token;
+        dd($user);
+
+        // dd([
+        //         'client_id' => config('services.dcache-token-exchange.client_id'),
+        //         'client_secret' => config('services.dcache-token-exchange.client_secret'),
+        //         'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+        //         'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+        //         'subject_token' => $user->token,
+        //         'subject_issuer' => 'oidc',
+        //         'audience' => 'token-exchange',
+        //     ]);
+
+        $response = Http::asForm()->withOptions(['debug' => true])
+            ->post("https://keycloak.desy.de/auth/realms/production/protocol/openid-connect/token", [
+                'client_id' => config('services.dcache-token-exchange.client_id'),
+                'client_secret' => config('services.dcache-token-exchange.client_secret'),
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'subject_token' => $user->token,
+                'subject_issuer' => 'oidc',
+                'audience' => 'token-exchange',
+            ]);
+
+        // TODO Handle error, not authorized to access dCache?
+
+        dd($response->body());
+        // TODO: Make token exchange request, then reuse store() logic to create
+        // disk.
+    }
+
+    protected function validateAndCreateDisk(string $name, string $type, int $userId, array $options = [])
+    {
+        $disk = DB::transaction(function () use ($name, $type, $userId, $options) {
             $disk = UserDisk::create([
-                'name' => $request->input('name'),
-                'type' => $request->input('type'),
-                'user_id' => $request->user()->id,
+                'name' => $name,
+                'type' => $type,
+                'user_id' => $userId,
                 'expires_at' => now()->addMonths(config('user_disks.expires_months')),
-                'options' => $request->getDiskOptions(),
+                'options' => $options,
             ]);
 
             match ($disk->type) {

@@ -3,6 +3,7 @@
 namespace Biigle\Modules\UserDisks;
 
 use Biigle\Http\Requests\UpdateUserSettings;
+use Biigle\Modules\AuthHaai\SocialiteProvider;
 use Biigle\Modules\UserDisks\Console\Commands\CheckExpiredUserDisks;
 use Biigle\Modules\UserDisks\Console\Commands\PruneExpiredUserDisks;
 use Biigle\Modules\UserStorage\UserStorageServiceProvider;
@@ -10,9 +11,11 @@ use Biigle\Services\Modules;
 use Biigle\User;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
+use SocialiteProviders\Manager\SocialiteWasCalled;
 
 class UserDisksServiceProvider extends ServiceProvider
 {
@@ -84,6 +87,13 @@ class UserDisksServiceProvider extends ServiceProvider
                     ->onOneServer();
             });
         }
+
+        Event::listen(
+            SocialiteWasCalled::class,
+            function (SocialiteWasCalled $socialiteWasCalled) {
+                $socialiteWasCalled->extendSocialite('haai-dcache', SocialiteProvider::class);
+            }
+        );
     }
 
     /**
