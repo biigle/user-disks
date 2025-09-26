@@ -134,7 +134,8 @@ class UserDisksServiceProvider extends ServiceProvider
      */
     protected function overrideUseDiskGateAbility()
     {
-        // Override gate to allow own user disk.
+        // Only extend the use-disk gate (if it exists) because other modules may use
+        // it too.
         $abilities = Gate::abilities();
         $useDiskAbility = $abilities['use-disk'] ?? fn () => false;
         Gate::define('use-disk', function (User $user, $disk) use ($useDiskAbility) {

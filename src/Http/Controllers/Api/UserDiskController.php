@@ -59,8 +59,8 @@ class UserDiskController extends Controller
         if ($request->input('type') === 'dcache') {
             $request->session()->put('dcache-disk-name', $request->input('name'));
 
-            return Socialite::driver('haai-dcache')
-                ->setScopes(['openid', 'email', 'profile', 'offline_access'])
+            return Socialite::driver('haai')
+                ->redirectUrl(url('/user-disks/dcache/callback'))
                 ->redirect();
         }
 
@@ -70,40 +70,46 @@ class UserDiskController extends Controller
     public function storeDCacheCallback(Request $request)
     {
         try {
-            $user = Socialite::driver('haai-dcache')->user();
+            $user = Socialite::driver('haai')
+                ->redirectUrl(url('/user-disks/dcache/callback'))
+                ->user();
+        } catch (Exception $e) {
+            throw $e; //TODO
+        }
+
+        $postData = [
+            'client_id' => config('services.dcache-token-exchange.client_id'),
+            'client_secret' => config('services.dcache-token-exchange.client_secret'),
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'subject_token' => $user->token,
+            'subject_issuer' => 'oidc',
+            'audience' => 'token-exchange',
+        ];
+
+        // dump($postData);
+
+        // dd($user);
+
+        try {
+            $response = Http::asForm()->post("https://keycloak.desy.de/auth/realms/production/protocol/openid-connect/token", $postData);
         } catch (Exception $e) {
             throw $e;
+            // TODO Handle error, not authorized to access dCache?
         }
+
+        // dd($response->body());
+
         $name = $request->session()->pull('dcache-disk-name');
-        $token = $user->token;
-        dd($user);
+        //TODO
+        $diskOptions = [
+            'token' => '',
+            'refresh_token' => '',
+            'token_expires_at' => '',
+            'refresh_token_expires_at' => '',
+        ];
 
-        // dd([
-        //         'client_id' => config('services.dcache-token-exchange.client_id'),
-        //         'client_secret' => config('services.dcache-token-exchange.client_secret'),
-        //         'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
-        //         'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-        //         'subject_token' => $user->token,
-        //         'subject_issuer' => 'oidc',
-        //         'audience' => 'token-exchange',
-        //     ]);
-
-        $response = Http::asForm()->withOptions(['debug' => true])
-            ->post("https://keycloak.desy.de/auth/realms/production/protocol/openid-connect/token", [
-                'client_id' => config('services.dcache-token-exchange.client_id'),
-                'client_secret' => config('services.dcache-token-exchange.client_secret'),
-                'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'subject_token' => $user->token,
-                'subject_issuer' => 'oidc',
-                'audience' => 'token-exchange',
-            ]);
-
-        // TODO Handle error, not authorized to access dCache?
-
-        dd($response->body());
-        // TODO: Make token exchange request, then reuse store() logic to create
-        // disk.
+        return $this->validateAndCreateDisk($name, 'dcache', $request->user()->id, $diskOptions);
     }
 
     protected function validateAndCreateDisk(string $name, string $type, int $userId, array $options = [])
