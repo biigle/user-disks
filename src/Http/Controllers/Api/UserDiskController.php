@@ -61,6 +61,8 @@ class UserDiskController extends Controller
 
             return Socialite::driver('haai')
                 ->redirectUrl(url('/user-disks/dcache/callback'))
+                // eduperson_principal_name is critical for the token exchange!
+                ->setScopes(['openid', 'profile', 'email', 'eduperson_principal_name'])
                 ->redirect();
         }
 
@@ -87,10 +89,6 @@ class UserDiskController extends Controller
             'audience' => 'token-exchange',
         ];
 
-        // dump($postData);
-
-        // dd($user);
-
         try {
             $response = Http::asForm()->post("https://keycloak.desy.de/auth/realms/production/protocol/openid-connect/token", $postData);
         } catch (Exception $e) {
@@ -98,15 +96,15 @@ class UserDiskController extends Controller
             // TODO Handle error, not authorized to access dCache?
         }
 
-        // dd($response->body());
+        $data = $response->json();
 
         $name = $request->session()->pull('dcache-disk-name');
         //TODO
         $diskOptions = [
-            'token' => '',
-            'refresh_token' => '',
-            'token_expires_at' => '',
-            'refresh_token_expires_at' => '',
+            'token' => $data['access_token'],
+            'refresh_token' => $data['refresh_token'],
+            'token_expires_at' => now()->addSeconds($data['expires_in']),
+            'refresh_token_expires_at' => now()->addSeconds($data['refresh_expires_in']),
         ];
 
         return $this->validateAndCreateDisk($name, 'dcache', $request->user()->id, $diskOptions);

@@ -42,9 +42,7 @@ return [
         'dcache' => [
             'driver' => 'webdav',
             'baseUri' => 'https://hifis-storage.desy.de:2880',
-            // 'userName' => '',
-            // 'password' => '',
-            // 'pathPrefix' => '',
+            'pathPrefix' => '',
         ],
 
         'elements' => [
@@ -93,11 +91,7 @@ return [
         ],
 
         'dcache' => [
-            // TODO: Start auth flow.
-            // 'baseUri' => 'required|url',
-            // 'userName' => 'required_with:password',
-            // 'password' => 'required_with:userName',
-            // 'pathPrefix' => 'filled',
+            'pathPrefix' => 'filled',
         ],
 
         'elements' => [
@@ -134,11 +128,7 @@ return [
         ],
 
         'dcache' => [
-            // TODO: Start reauth flow.
-            // 'baseUri' => 'filled|url',
-            // 'userName' => 'required_with:password',
-            // 'password' => 'required_with:userName',
-            // 'pathPrefix' => 'filled',
+            'pathPrefix' => 'filled',
         ],
 
         'elements' => [
