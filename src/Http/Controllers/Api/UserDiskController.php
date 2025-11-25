@@ -56,6 +56,16 @@ class UserDiskController extends Controller
      */
     public function store(StoreUserDisk $request)
     {
+        // TODO implement optional path prefix for dcache
+
+        // TODO implement/update tests
+
+        // TODO put dcache storage disk provider to separate package so
+        // biigle/laravel-socialite-haai isnt installed everywhere?
+        // Same with biigle/laravel-elements-storage?
+        // Alternative: disable elements and dcache and add to readme that packages
+        // have to be installed to enable the two.
+
         if ($request->input('type') === 'dcache') {
             $request->session()->put('dcache-disk-name', $request->input('name'));
 
@@ -69,8 +79,22 @@ class UserDiskController extends Controller
         return $this->validateAndCreateDisk($request->input('name'), $request->input('type'), $request->user()->id, $request->getDiskOptions());
     }
 
+    /**
+     * Handle the dCache authentication response.
+     *
+     * @api {get} user-disks/dcache/callback Handle the dCache authentication response
+     * @apiGroup StorageDisks
+     * @apiName dCacheAuthCallback
+     * @apiPermission editor
+     * @apiDescription This is the callback URL for the dCache OIDC authentication flow.
+     */
     public function storeDCacheCallback(Request $request)
     {
+        // TODO implement dcache temp url via macaroon in new filesystem adapter
+        /*
+            curl -E /tmp/x509up_u1000 -X POST -H 'Content-Type: application/macaroon-request' -d '{"caveats": ["activity:DOWNLOAD", "before:2019-09-25T08:12:11.080Z"]}' https://dcache.example.org/
+         */
+
         try {
             $user = Socialite::driver('haai')
                 ->redirectUrl(url('/user-disks/dcache/callback'))
@@ -99,7 +123,12 @@ class UserDiskController extends Controller
         $data = $response->json();
 
         $name = $request->session()->pull('dcache-disk-name');
-        //TODO
+
+        // TODO implement scheduled job to refresh tokens
+        // job runs every hour and refreshes all tokens with a refresh_token expiring within the next 2 hours
+        // token refresh with a valid refresh_token has to be implemented in the storage disk resolver somehow (i.e. if a file is requested and the token is invalid but the refresh_token is valid, the token is automatically refreshed within the same request)
+
+
         $diskOptions = [
             'token' => $data['access_token'],
             'refresh_token' => $data['refresh_token'],
@@ -110,6 +139,9 @@ class UserDiskController extends Controller
         return $this->validateAndCreateDisk($name, 'dcache', $request->user()->id, $diskOptions);
     }
 
+    /**
+     * Check if a new storage disk has valid options/credentials and create it
+     */
     protected function validateAndCreateDisk(string $name, string $type, int $userId, array $options = [])
     {
         $disk = DB::transaction(function () use ($name, $type, $userId, $options) {
@@ -178,6 +210,9 @@ class UserDiskController extends Controller
      */
     public function update(UpdateUserDisk $request)
     {
+        // TODO: Update dcache token if refresh token is still valid otherwise get new
+        // token
+
         DB::transaction(function () use ($request) {
             $request->disk->name = $request->input('name', $request->disk->name);
             $request->disk->options = array_merge(
