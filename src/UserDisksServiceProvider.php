@@ -61,6 +61,7 @@ class UserDisksServiceProvider extends ServiceProvider
 
         $this->addStorageConfigResolver();
         $this->overrideUseDiskGateAbility();
+        $this->registerAzureDriver();
 
         if (config('user_disks.notifications.allow_user_settings')) {
             $modules->registerViewMixin('user-disks', 'settings.notifications');
@@ -134,6 +135,49 @@ class UserDisksServiceProvider extends ServiceProvider
             }
 
             return $useDiskAbility($user, $disk);
+        });
+    }
+
+    /**
+     * Register the Azure Blob Storage driver.
+     */
+    protected function registerAzureDriver()
+    {
+        Storage::extend('azure', function ($app, $config) {
+            if (empty($config['sas_token'])) {
+                $endpoint = sprintf(
+                    'DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s',
+                    $config['name'],
+                    $config['key'],
+                    $config['endpoint_suffix'] ?? 'core.windows.net'
+                );
+            } else {
+                $blobEndpoint = $config['endpoint'] ?? sprintf(
+                    'https://%s.blob.%s',
+                    $config['name'],
+                    $config['endpoint_suffix'] ?? 'core.windows.net'
+                );
+
+                $endpoint = sprintf(
+                    'BlobEndpoint=%s;SharedAccessSignature=%s',
+                    $blobEndpoint,
+                    $config['sas_token']
+                );
+            }
+
+            $client = \MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobService($endpoint);
+
+            $adapter = new AzureBlobStorageAdapter(
+                $client,
+                $config['container'],
+                $config['prefix'] ?? ''
+            );
+
+            return new AzureFilesystemAdapter(
+                new \League\Flysystem\Filesystem($adapter, $config),
+                $adapter,
+                $config
+            );
         });
     }
 }

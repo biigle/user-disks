@@ -62,6 +62,16 @@ return [
             'secret' => '',
             'endpoint' => '',
         ],
+
+        'azure' => [
+            'driver' => 'azure',
+            'name' => '',
+            'key' => '',
+            'container' => '',
+            'url' => '',
+            'endpoint' => '',
+            'sas_token' => '',
+        ],
     ],
 
     /*
@@ -95,6 +105,15 @@ return [
             'key' => 'required',
             'secret' => 'required',
         ],
+
+        'azure' => [
+            'name' => 'required',
+            'key' => 'required_without:sas_token',
+            'container' => 'required',
+            'url' => 'required|url',
+            'endpoint' => 'required|url',
+            'sas_token' => 'required_without:key',
+        ],
     ],
 
     /*
@@ -127,6 +146,15 @@ return [
             'endpoint' => 'filled|url',
             'key' => 'filled',
             'secret' => 'filled',
+        ],
+
+        'azure' => [
+            'name' => 'filled',
+            'key' => 'filled',
+            'container' => 'filled',
+            'url' => 'filled|url',
+            'endpoint' => 'filled|url',
+            'sas_token' => 'filled',
         ],
     ],
 

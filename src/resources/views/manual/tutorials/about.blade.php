@@ -65,6 +65,11 @@
                     <a href="#aruna">Aruna</a>
                 </li>
             @endif
+            @if(in_array('azure', config('user_disks.types')))
+                <li>
+                    <a href="#azure">Azure Blob Storage</a>
+                </li>
+            @endif
             @if(empty(config('user_disks.types')))
                 <li class="text-muted">
                     No types are available. Please ask your administrator for help.
@@ -86,6 +91,10 @@
 
         @if(in_array('aruna', config('user_disks.types')))
             @include("user-disks::manual.types.aruna")
+        @endif
+
+        @if(in_array('azure', config('user_disks.types')))
+            @include("user-disks::manual.types.azure")
         @endif
     </div>
 @endsection

@@ -242,7 +242,7 @@ class UserDiskController extends Controller
         try {
             $this->validateDiskAccess($disk);
         } catch (Exception $e) {
-            throw ValidationException::withMessages(['error' => 'The configuration seems to be invalid.']);
+            throw ValidationException::withMessages(['error' => 'The configuration seems to be invalid. ' . $e->getMessage()]);
         }
     }
 
