@@ -69,13 +69,19 @@ class AzureBlobStorageAdapter extends BaseAdapter
 
         $continuationToken = null;
 
+        $seenDirs = [];
+
         do {
             $options->setContinuationToken($continuationToken);
             $result = $this->client->listBlobs($this->container, $options);
 
             foreach ($result->getBlobPrefixes() as $prefix) {
                 $dirPath = $this->removePathPrefix($prefix->getName());
-                yield new DirectoryAttributes(rtrim($dirPath, '/'));
+                $dirPath = rtrim($dirPath, '/');
+                if (!isset($seenDirs[$dirPath])) {
+                    $seenDirs[$dirPath] = true;
+                    yield new DirectoryAttributes($dirPath);
+                }
             }
 
             foreach ($result->getBlobs() as $blob) {
@@ -84,14 +90,31 @@ class AzureBlobStorageAdapter extends BaseAdapter
                 if ($filePath === '' || $filePath === $path) {
                     continue;
                 }
-                
-                yield new FileAttributes(
-                    $filePath,
-                    $blob->getProperties()->getContentLength(),
-                    null, // visibility
-                    $blob->getProperties()->getLastModified()->getTimestamp(),
-                    $blob->getProperties()->getContentType()
-                );
+
+                // Check if the file is in a subdirectory relative to the requested path
+                $relativePath = substr($filePath, strlen($path));
+                $relativePath = ltrim($relativePath, '/');
+
+                if (str_contains($relativePath, '/')) {
+                    // It's in a subdirectory (Server ignored delimiter, e.g. Azurite)
+                    $parts = explode('/', $relativePath);
+                    $dirName = $parts[0];
+                    $fullDirPath = $path ? $path . '/' . $dirName : $dirName;
+                    
+                    if (!isset($seenDirs[$fullDirPath])) {
+                        $seenDirs[$fullDirPath] = true;
+                        yield new DirectoryAttributes($fullDirPath);
+                    }
+                } else {
+                    // It's a direct child file
+                    yield new FileAttributes(
+                        $filePath,
+                        $blob->getProperties()->getContentLength(),
+                        null, // visibility
+                        $blob->getProperties()->getLastModified()->getTimestamp(),
+                        $blob->getProperties()->getContentType()
+                    );
+                }
             }
 
             $continuationToken = $result->getContinuationToken();
