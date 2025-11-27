@@ -2,57 +2,117 @@
 
 namespace Biigle\Modules\UserDisks;
 
-use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter as BaseAdapter;
+use AzureOss\FlysystemAzureBlobStorage\AzureBlobStorageAdapter as BaseAdapter;
+use AzureOss\Storage\Blob\BlobContainerClient;
+use AzureOss\Storage\Blob\Models\Blob;
+use AzureOss\Storage\Blob\Models\BlobPrefix;
+use League\Flysystem\Config;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
-use MicrosoftAzure\Storage\Blob\BlobRestProxy;
-use MicrosoftAzure\Storage\Blob\Models\ListBlobsOptions;
+use League\Flysystem\FilesystemAdapter;
 
-class AzureBlobStorageAdapter extends BaseAdapter
+class AzureBlobStorageAdapter implements FilesystemAdapter
 {
-    /**
-     * @var BlobRestProxy
-     */
-    protected $client;
+    private BaseAdapter $adapter;
+    private BlobContainerClient $client;
+    private string $prefix;
 
-    /**
-     * @var string
-     */
-    protected $container;
-
-    /**
-     * @var string
-     */
-    protected $prefix;
-
-    /**
-     * Constructor.
-     *
-     * @param BlobRestProxy $client
-     * @param string $container
-     * @param string $prefix
-     */
-    public function __construct(BlobRestProxy $client, string $container, string $prefix = '')
+    public function __construct(BlobContainerClient $client, string $prefix = '')
     {
-        parent::__construct($client, $container, $prefix);
         $this->client = $client;
-        $this->container = $container;
+        $this->prefix = $prefix;
         
         if ($prefix !== '' && substr($prefix, -1) !== '/') {
             $prefix .= '/';
         }
         
-        $this->prefix = $prefix;
+        $this->adapter = new BaseAdapter($client, $prefix);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function listContents(string $path = '', bool $deep = false): iterable
+    public function fileExists(string $path): bool
+    {
+        return $this->adapter->fileExists($path);
+    }
+
+    public function directoryExists(string $path): bool
+    {
+        return $this->adapter->directoryExists($path);
+    }
+
+    public function write(string $path, string $contents, Config $config): void
+    {
+        $this->adapter->write($path, $contents, $config);
+    }
+
+    public function writeStream(string $path, $contents, Config $config): void
+    {
+        $this->adapter->writeStream($path, $contents, $config);
+    }
+
+    public function read(string $path): string
+    {
+        return $this->adapter->read($path);
+    }
+
+    public function readStream(string $path)
+    {
+        return $this->adapter->readStream($path);
+    }
+
+    public function delete(string $path): void
+    {
+        $this->adapter->delete($path);
+    }
+
+    public function deleteDirectory(string $path): void
+    {
+        $this->adapter->deleteDirectory($path);
+    }
+
+    public function createDirectory(string $path, Config $config): void
+    {
+        $this->adapter->createDirectory($path, $config);
+    }
+
+    public function setVisibility(string $path, string $visibility): void
+    {
+        $this->adapter->setVisibility($path, $visibility);
+    }
+
+    public function visibility(string $path): FileAttributes
+    {
+        return $this->adapter->visibility($path);
+    }
+
+    public function mimeType(string $path): FileAttributes
+    {
+        return $this->adapter->mimeType($path);
+    }
+
+    public function lastModified(string $path): FileAttributes
+    {
+        return $this->adapter->lastModified($path);
+    }
+
+    public function fileSize(string $path): FileAttributes
+    {
+        return $this->adapter->fileSize($path);
+    }
+
+    public function move(string $source, string $destination, Config $config): void
+    {
+        $this->adapter->move($source, $destination, $config);
+    }
+
+    public function copy(string $source, string $destination, Config $config): void
+    {
+        $this->adapter->copy($source, $destination, $config);
+    }
+
+    public function listContents(string $path, bool $deep): iterable
     {
         if ($deep) {
-            yield from parent::listContents($path, true);
-            return;
+            return $this->adapter->listContents($path, true);
         }
 
         $location = $this->applyPathPrefix($path);
@@ -61,42 +121,31 @@ class AzureBlobStorageAdapter extends BaseAdapter
             $location .= '/';
         }
 
-        $options = new ListBlobsOptions();
-        $options->setPrefix($location);
-        $options->setDelimiter('/');
-        // Max results per page (default is usually 5000, but good to be explicit or leave default)
-        // $options->setMaxResults(1000);
-
-        $continuationToken = null;
-
+        // Use getBlobsByHierarchy for shallow listing
+        $generator = $this->client->getBlobsByHierarchy($location, '/');
         $seenDirs = [];
 
-        do {
-            $options->setContinuationToken($continuationToken);
-            $result = $this->client->listBlobs($this->container, $options);
-
-            foreach ($result->getBlobPrefixes() as $prefix) {
-                $dirPath = $this->removePathPrefix($prefix->getName());
+        foreach ($generator as $item) {
+            if ($item instanceof BlobPrefix) {
+                $dirPath = $this->removePathPrefix($item->name);
                 $dirPath = rtrim($dirPath, '/');
                 if (!isset($seenDirs[$dirPath])) {
                     $seenDirs[$dirPath] = true;
                     yield new DirectoryAttributes($dirPath);
                 }
-            }
-
-            foreach ($result->getBlobs() as $blob) {
-                $filePath = $this->removePathPrefix($blob->getName());
-                // Skip if it matches the directory itself (virtual directory marker)
+            } elseif ($item instanceof Blob) {
+                $filePath = $this->removePathPrefix($item->name);
+                
                 if ($filePath === '' || $filePath === $path) {
                     continue;
                 }
 
-                // Check if the file is in a subdirectory relative to the requested path
+                // Azurite compatibility: Check for deep files in shallow listing
                 $relativePath = substr($filePath, strlen($path));
                 $relativePath = ltrim($relativePath, '/');
 
                 if (str_contains($relativePath, '/')) {
-                    // It's in a subdirectory (Server ignored delimiter, e.g. Azurite)
+                    // It's in a subdirectory (Server ignored delimiter)
                     $parts = explode('/', $relativePath);
                     $dirName = $parts[0];
                     $fullDirPath = $path ? $path . '/' . $dirName : $dirName;
@@ -106,40 +155,23 @@ class AzureBlobStorageAdapter extends BaseAdapter
                         yield new DirectoryAttributes($fullDirPath);
                     }
                 } else {
-                    // It's a direct child file
                     yield new FileAttributes(
                         $filePath,
-                        $blob->getProperties()->getContentLength(),
-                        null, // visibility
-                        $blob->getProperties()->getLastModified()->getTimestamp(),
-                        $blob->getProperties()->getContentType()
+                        $item->properties->contentLength,
+                        null,
+                        $item->properties->lastModified->getTimestamp(),
+                        $item->properties->contentType
                     );
                 }
             }
-
-            $continuationToken = $result->getContinuationToken();
-        } while ($continuationToken);
+        }
     }
 
-    /**
-     * Apply the path prefix.
-     *
-     * @param string $path
-     *
-     * @return string
-     */
     protected function applyPathPrefix($path): string
     {
         return ltrim($this->prefix . ltrim($path, '\\/'), '\\/');
     }
 
-    /**
-     * Remove the path prefix.
-     *
-     * @param string $path
-     *
-     * @return string
-     */
     protected function removePathPrefix($path): string
     {
         return substr($path, strlen($this->prefix));
