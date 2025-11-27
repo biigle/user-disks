@@ -5,9 +5,46 @@ namespace Biigle\Modules\UserDisks;
 use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter as BaseAdapter;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
+use MicrosoftAzure\Storage\Blob\BlobRestProxy;
+use MicrosoftAzure\Storage\Blob\Models\ListBlobsOptions;
 
 class AzureBlobStorageAdapter extends BaseAdapter
 {
+    /**
+     * @var BlobRestProxy
+     */
+    protected $client;
+
+    /**
+     * @var string
+     */
+    protected $container;
+
+    /**
+     * @var string
+     */
+    protected $prefix;
+
+    /**
+     * Constructor.
+     *
+     * @param BlobRestProxy $client
+     * @param string $container
+     * @param string $prefix
+     */
+    public function __construct(BlobRestProxy $client, string $container, string $prefix = '')
+    {
+        parent::__construct($client, $container, $prefix);
+        $this->client = $client;
+        $this->container = $container;
+        
+        if ($prefix !== '' && substr($prefix, -1) !== '/') {
+            $prefix .= '/';
+        }
+        
+        $this->prefix = $prefix;
+    }
+
     /**
      * @inheritDoc
      */
@@ -18,46 +55,70 @@ class AzureBlobStorageAdapter extends BaseAdapter
             return;
         }
 
-        // Azure Blob Storage is flat, so we simulate directories by listing everything recursively
-        // and then grouping the results.
-        $contents = parent::listContents($path, true);
-        $seenDirectories = [];
-
-        foreach ($contents as $attributes) {
-            // If the parent adapter already returns a directory, yield it.
-            if ($attributes instanceof DirectoryAttributes) {
-                 yield $attributes;
-                 continue;
-            }
-            
-            $itemPath = $attributes->path();
-            
-            // Normalize paths to ensure correct comparison
-            $itemPath = trim($itemPath, '/');
-            $cleanPath = trim($path, '/');
-            
-            // Ensure the item is actually within the requested path
-            if ($cleanPath !== '' && !str_starts_with($itemPath, $cleanPath . '/')) {
-                continue;
-            }
-            
-            // Calculate relative path
-            $relativePath = $cleanPath === '' ? $itemPath : substr($itemPath, strlen($cleanPath) + 1);
-            
-            if (str_contains($relativePath, '/')) {
-                // It's in a subdirectory
-                $parts = explode('/', $relativePath);
-                $dirName = $parts[0];
-                $fullDirPath = $cleanPath === '' ? $dirName : $cleanPath . '/' . $dirName;
-                
-                if (!isset($seenDirectories[$fullDirPath])) {
-                    $seenDirectories[$fullDirPath] = true;
-                    yield new DirectoryAttributes($fullDirPath);
-                }
-            } else {
-                // It's a file in the current directory
-                yield $attributes;
-            }
+        $location = $this->applyPathPrefix($path);
+        
+        if (strlen($location) > 0 && substr($location, -1) !== '/') {
+            $location .= '/';
         }
+
+        $options = new ListBlobsOptions();
+        $options->setPrefix($location);
+        $options->setDelimiter('/');
+        // Max results per page (default is usually 5000, but good to be explicit or leave default)
+        // $options->setMaxResults(1000);
+
+        $continuationToken = null;
+
+        do {
+            $options->setContinuationToken($continuationToken);
+            $result = $this->client->listBlobs($this->container, $options);
+
+            foreach ($result->getBlobPrefixes() as $prefix) {
+                $dirPath = $this->removePathPrefix($prefix->getName());
+                yield new DirectoryAttributes(rtrim($dirPath, '/'));
+            }
+
+            foreach ($result->getBlobs() as $blob) {
+                $filePath = $this->removePathPrefix($blob->getName());
+                // Skip if it matches the directory itself (virtual directory marker)
+                if ($filePath === '' || $filePath === $path) {
+                    continue;
+                }
+                
+                yield new FileAttributes(
+                    $filePath,
+                    $blob->getProperties()->getContentLength(),
+                    null, // visibility
+                    $blob->getProperties()->getLastModified()->getTimestamp(),
+                    $blob->getProperties()->getContentType()
+                );
+            }
+
+            $continuationToken = $result->getContinuationToken();
+        } while ($continuationToken);
+    }
+
+    /**
+     * Apply the path prefix.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    protected function applyPathPrefix($path): string
+    {
+        return ltrim($this->prefix . ltrim($path, '\\/'), '\\/');
+    }
+
+    /**
+     * Remove the path prefix.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    protected function removePathPrefix($path): string
+    {
+        return substr($path, strlen($this->prefix));
     }
 }
