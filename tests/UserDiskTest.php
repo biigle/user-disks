@@ -125,6 +125,34 @@ class UserDiskTest extends ModelTestCase
         $this->assertEquals($expect, $disk->getConfig());
     }
 
+    public function testGetAzureConfig()
+    {
+        $disk = UserDisk::factory()->make([
+            'type' => 'azure',
+            'options' => [
+                'name' => 'account-name',
+                'key' => 'account-key',
+                'container' => 'container-name',
+                'url' => 'https://account.blob.core.windows.net/container',
+                'endpoint' => 'https://account.blob.core.windows.net',
+                'sas_token' => '?sv=...',
+            ],
+        ]);
+
+        $expect = [
+            'driver' => 'azure',
+            'name' => 'account-name',
+            'key' => 'account-key',
+            'container' => 'container-name',
+            'url' => 'https://account.blob.core.windows.net/container',
+            'endpoint' => 'https://account.blob.core.windows.net',
+            'sas_token' => '?sv=...',
+            'read-only' => true,
+        ];
+
+        $this->assertEquals($expect, $disk->getConfig());
+    }
+
     public function testGetConfigTemplateDoesNotExist()
     {
         $this->expectException(\TypeError::class);
@@ -148,6 +176,11 @@ class UserDiskTest extends ModelTestCase
         $this->assertNotEmpty(UserDisk::getStoreValidationRules('s3'));
     }
 
+    public function testGetStoreValidationRulesAzure()
+    {
+        $this->assertNotEmpty(UserDisk::getStoreValidationRules('azure'));
+    }
+
     public function testGetUpdateValidationRules()
     {
         $rules = [
@@ -162,6 +195,11 @@ class UserDiskTest extends ModelTestCase
     public function testGetUpdateValidationRulesS3()
     {
         $this->assertNotEmpty(UserDisk::getUpdateValidationRules('s3'));
+    }
+
+    public function testGetUpdateValidationRulesAzure()
+    {
+        $this->assertNotEmpty(UserDisk::getUpdateValidationRules('azure'));
     }
 
     public function testIsAboutToExpire()
