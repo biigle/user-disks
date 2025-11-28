@@ -61,7 +61,6 @@ class UserDisksServiceProvider extends ServiceProvider
 
         $this->addStorageConfigResolver();
         $this->overrideUseDiskGateAbility();
-        $this->registerAzureDriver();
 
         if (config('user_disks.notifications.allow_user_settings')) {
             $modules->registerViewMixin('user-disks', 'settings.notifications');
@@ -135,71 +134,6 @@ class UserDisksServiceProvider extends ServiceProvider
             }
 
             return $useDiskAbility($user, $disk);
-        });
-    }
-
-    /**
-     * Register the Azure Blob Storage driver.
-     */
-    protected function registerAzureDriver()
-    {
-        Storage::extend('azure', function ($app, $config) {
-            // Fallback for Azurite (devstoreaccount1) to use well-known key if missing or if SAS is failing
-            if ($config['name'] === 'devstoreaccount1') {
-                if (empty($config['key'])) {
-                    $config['key'] = 'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==';
-                }
-                // Force use of Account Key for Azurite as SAS has issues with the library
-                $config['sas_token'] = null;
-            }
-
-            if (empty($config['sas_token'])) {
-                if (!empty($config['endpoint'])) {
-                    $scheme = parse_url($config['endpoint'], PHP_URL_SCHEME) ?: 'https';
-                    $connectionString = sprintf(
-                        'DefaultEndpointsProtocol=%s;AccountName=%s;AccountKey=%s;BlobEndpoint=%s',
-                        $scheme,
-                        $config['name'],
-                        $config['key'],
-                        $config['endpoint']
-                    );
-                } else {
-                    $connectionString = sprintf(
-                        'DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s',
-                        $config['name'],
-                        $config['key'],
-                        $config['endpoint_suffix'] ?? 'core.windows.net'
-                    );
-                }
-            } else {
-                $blobEndpoint = $config['endpoint'] ?? sprintf(
-                    'https://%s.blob.%s',
-                    $config['name'],
-                    $config['endpoint_suffix'] ?? 'core.windows.net'
-                );
-
-                $scheme = parse_url($blobEndpoint, PHP_URL_SCHEME) ?: 'https';
-                $connectionString = sprintf(
-                    'BlobEndpoint=%s;SharedAccessSignature=%s;DefaultEndpointsProtocol=%s',
-                    $blobEndpoint,
-                    ltrim($config['sas_token'], '?'),
-                    $scheme
-                );
-            }
-
-            $serviceClient = \AzureOss\Storage\Blob\BlobServiceClient::fromConnectionString($connectionString);
-            $containerClient = $serviceClient->getContainerClient($config['container']);
-
-            $adapter = new AzureBlobStorageAdapter(
-                $containerClient,
-                $config['prefix'] ?? ''
-            );
-
-            return new AzureFilesystemAdapter(
-                new \League\Flysystem\Filesystem($adapter, $config),
-                $adapter,
-                $config
-            );
         });
     }
 }

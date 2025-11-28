@@ -63,14 +63,10 @@ return [
             'endpoint' => '',
         ],
 
-        'azure' => [
-            'driver' => 'azure',
-            'name' => '',
-            'key' => '',
+        'azure-storage-blob' => [
+            'driver' => 'azure-storage-blob',
+            'connection_string' => '',
             'container' => '',
-            'url' => '',
-            'endpoint' => '',
-            'sas_token' => '',
         ],
     ],
 
@@ -106,13 +102,9 @@ return [
             'secret' => 'required',
         ],
 
-        'azure' => [
-            'name' => 'required',
-            'key' => 'required_without:sas_token',
+        'azure-storage-blob' => [
+            'connection_string' => 'required',
             'container' => 'required',
-            'url' => 'required|url',
-            'endpoint' => 'required|url',
-            'sas_token' => 'required_without:key',
         ],
     ],
 
@@ -148,13 +140,9 @@ return [
             'secret' => 'filled',
         ],
 
-        'azure' => [
-            'name' => 'filled',
-            'key' => 'filled',
+        'azure-storage-blob' => [
+            'connection_string' => 'filled',
             'container' => 'filled',
-            'url' => 'filled|url',
-            'endpoint' => 'filled|url',
-            'sas_token' => 'filled',
         ],
     ],
 
