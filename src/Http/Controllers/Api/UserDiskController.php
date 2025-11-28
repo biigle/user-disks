@@ -127,6 +127,7 @@ class UserDiskController extends Controller
         // TODO implement scheduled job to refresh tokens
         // job runs every hour and refreshes all tokens with a refresh_token expiring within the next 2 hours
         // token refresh with a valid refresh_token has to be implemented in the storage disk resolver somehow (i.e. if a file is requested and the token is invalid but the refresh_token is valid, the token is automatically refreshed within the same request)
+        // => Do this in UserDisk::extend()!
 
 
         $diskOptions = [
