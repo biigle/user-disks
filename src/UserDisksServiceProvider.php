@@ -119,6 +119,11 @@ class UserDisksServiceProvider extends ServiceProvider
                     // Disks are automatically extended each time they are used.
                     $disk->extend();
 
+                    // Refresh dcache token if it's about to expire.
+                    if ($disk->type === 'dcache' && $disk->isDCacheAccessTokenExpiring()) {
+                        $disk->refreshDCacheToken();
+                    }
+
                     return $disk->getConfig();
                 }
             }

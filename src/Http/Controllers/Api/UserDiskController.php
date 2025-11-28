@@ -18,8 +18,6 @@ use Illuminate\Support\Facades\Http;
 
 class UserDiskController extends Controller
 {
-    const DESY_TOKEN_ENDPOINT = "https://keycloak.desy.de/auth/realms/production/protocol/openid-connect/token";
-
     /**
      * Initialize a new user storage disk
      *
@@ -116,7 +114,7 @@ class UserDiskController extends Controller
         ];
 
         try {
-            $response = Http::asForm()->post(static::DESY_TOKEN_ENDPOINT, $postData);
+            $response = Http::asForm()->post(UserDisk::DCACHE_TOKEN_ENDPOINT, $postData);
         } catch (Exception $e) {
             throw $e;
             // TODO Handle error, not authorized to access dCache?

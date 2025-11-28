@@ -83,33 +83,4 @@ class RefreshDCacheTokensTest extends TestCase
         // Verify HTTP was called exactly twice (for disk1 and disk2)
         Http::assertSentCount(2);
     }
-
-    public function testHandleWithHttpError()
-    {
-        config([
-            'services.dcache-token-exchange.client_id' => 'test-client-id',
-            'services.dcache-token-exchange.client_secret' => 'test-client-secret',
-        ]);
-
-        Http::fake([
-            'keycloak.desy.de/*' => Http::response(['error' => 'invalid_grant'], 400),
-        ]);
-
-        $disk = UserDisk::factory()->create([
-            'type' => 'dcache',
-            'options' => [
-                'token' => 'old-token',
-                'refresh_token' => 'old-refresh-token',
-                'token_expires_at' => now()->addMinutes(30),
-                'refresh_token_expires_at' => now()->addHour(),
-            ],
-        ]);
-
-        $this->artisan('user-disks:refresh-dcache-tokens')->assertExitCode(0);
-
-        // Verify disk was not modified
-        $disk->refresh();
-        $this->assertEquals('old-token', $disk->options['token']);
-        $this->assertEquals('old-refresh-token', $disk->options['refresh_token']);
-    }
 }

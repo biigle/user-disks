@@ -6,6 +6,7 @@ use Biigle\Modules\UserDisks\UserDisk;
 use Biigle\Tests\UserTest;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Http;
 use ModelTestCase;
 
 class UserDiskTest extends ModelTestCase
@@ -194,5 +195,162 @@ class UserDiskTest extends ModelTestCase
             'name' => $this->model->name,
             'user_id' => $this->model->user_id
         ]);
+    }
+
+    public function testIsDCacheAccessTokenExpiring()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'options' => [
+                'token_expires_at' => '2025-11-27 16:06:00',
+            ],
+        ]);
+
+        $this->assertTrue($disk->isDCacheAccessTokenExpiring());
+    }
+
+    public function testIsDCacheAccessTokenExpiringExactlyOneMinute()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'options' => [
+                'token_expires_at' => now()->addMinute(),
+            ],
+        ]);
+
+        $this->assertTrue($disk->isDCacheAccessTokenExpiring());
+    }
+
+    public function testIsDCacheAccessTokenExpiringMoreThanOneMinute()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'options' => [
+                'token_expires_at' => now()->addMinutes(2),
+            ],
+        ]);
+
+        $this->assertFalse($disk->isDCacheAccessTokenExpiring());
+    }
+
+    public function testIsDCacheAccessTokenExpiringNonDCache()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 's3',
+            'options' => [
+                'token_expires_at' => now()->addHour(),
+            ],
+        ]);
+
+        $this->assertFalse($disk->isDCacheAccessTokenExpiring());
+    }
+
+    public function testIsDCacheRefreshTokenExpiring()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'options' => [
+                'refresh_token_expires_at' => '2025-11-27 16:06:00',
+            ],
+        ]);
+
+        $this->assertTrue($disk->isDCacheRefreshTokenExpiring());
+    }
+
+    public function testIsDCacheRefreshTokenExpiringExactlyTwoHours()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'options' => [
+                'refresh_token_expires_at' => now()->addHours(2),
+            ],
+        ]);
+
+        $this->assertTrue($disk->isDCacheRefreshTokenExpiring());
+    }
+
+    public function testIsDCacheRefreshTokenExpiringMoreThanTwoHours()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'options' => [
+                'refresh_token_expires_at' => now()->addHours(3),
+            ],
+        ]);
+
+        $this->assertFalse($disk->isDCacheRefreshTokenExpiring());
+    }
+
+    public function testIsDCacheRefreshTokenExpiringNonDCache()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 's3',
+            'options' => [
+                'refresh_token_expires_at' => now()->addHour(),
+            ],
+        ]);
+
+        $this->assertFalse($disk->isDCacheRefreshTokenExpiring());
+    }
+
+    public function testRefreshDCacheToken()
+    {
+        config([
+            'services.dcache-token-exchange.client_id' => 'test-client-id',
+            'services.dcache-token-exchange.client_secret' => 'test-client-secret',
+        ]);
+
+        Http::fake([
+            'keycloak.desy.de/*' => Http::response([
+                'access_token' => 'new-access-token',
+                'refresh_token' => 'new-refresh-token',
+                'expires_in' => 3600,
+                'refresh_expires_in' => 7200,
+            ], 200),
+        ]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'options' => [
+                'token' => 'old-token',
+                'refresh_token' => 'old-refresh-token',
+                'token_expires_at' => now()->addMinutes(30),
+                'refresh_token_expires_at' => now()->addHour(),
+            ],
+        ]);
+
+        $result = $disk->refreshDCacheToken();
+
+        $this->assertTrue($result);
+        $disk->refresh();
+        $this->assertEquals('new-access-token', $disk->options['token']);
+        $this->assertEquals('new-refresh-token', $disk->options['refresh_token']);
+    }
+
+    public function testRefreshDCacheTokenHttpError()
+    {
+        config([
+            'services.dcache-token-exchange.client_id' => 'test-client-id',
+            'services.dcache-token-exchange.client_secret' => 'test-client-secret',
+        ]);
+
+        Http::fake([
+            'keycloak.desy.de/*' => Http::response(['error' => 'invalid_grant'], 400),
+        ]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'options' => [
+                'token' => 'old-token',
+                'refresh_token' => 'old-refresh-token',
+            ],
+        ]);
+
+        $result = $disk->refreshDCacheToken();
+
+        $this->assertFalse($result);
+        $disk->refresh();
+        $this->assertEquals('old-token', $disk->options['token']);
+        $this->assertEquals('old-refresh-token', $disk->options['refresh_token']);
     }
 }
