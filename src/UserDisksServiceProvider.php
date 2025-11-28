@@ -6,6 +6,7 @@ use Biigle\Http\Requests\UpdateUserSettings;
 use Biigle\Modules\AuthHaai\SocialiteProvider;
 use Biigle\Modules\UserDisks\Console\Commands\CheckExpiredUserDisks;
 use Biigle\Modules\UserDisks\Console\Commands\PruneExpiredUserDisks;
+use Biigle\Modules\UserDisks\Console\Commands\RefreshDCacheTokens;
 use Biigle\Modules\UserStorage\UserStorageServiceProvider;
 use Biigle\Services\Modules;
 use Biigle\User;
@@ -73,6 +74,7 @@ class UserDisksServiceProvider extends ServiceProvider
             $this->commands([
                 CheckExpiredUserDisks::class,
                 PruneExpiredUserDisks::class,
+                RefreshDCacheTokens::class,
             ]);
 
             $this->app->booted(function () {
@@ -83,6 +85,10 @@ class UserDisksServiceProvider extends ServiceProvider
 
                 $schedule->command(PruneExpiredUserDisks::class)
                     ->daily()
+                    ->onOneServer();
+
+                $schedule->command(RefreshDCacheTokens::class)
+                    ->hourly()
                     ->onOneServer();
             });
         }
