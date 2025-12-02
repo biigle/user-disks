@@ -53,6 +53,12 @@ class UserDiskControllerTest extends ApiTestCase
         $this->get('storage-disks/create?type=aruna&name=abc')->assertStatus(200);
     }
 
+    public function testCreateAzure()
+    {
+        $this->beUser();
+        $this->get('storage-disks/create?type=azure&name=abc')->assertStatus(200);
+    }
+
     public function testCreateInvalid()
     {
         $this->beUser();
@@ -115,6 +121,19 @@ class UserDiskControllerTest extends ApiTestCase
                 'secret' => '456',
                 'endpoint' => 'aruna.example.com',
                 'bucket' => 'example',
+             ],
+        ]);
+        $this->be($disk->user);
+        $this->get("storage-disks/{$disk->id}")->assertStatus(200);
+    }
+
+    public function testUpdateAzure()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 'azure',
+            'options' => [
+                'connection_string' => 'DefaultEndpointsProtocol=https;BlobEndpoint=https://example.blob.core.windows.net;SharedAccessSignature=sv=...',
+                'container' => 'example-container',
              ],
         ]);
         $this->be($disk->user);
