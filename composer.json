@@ -1,39 +1,39 @@
 {
-   "name": "biigle/user-disks",
-   "description": "BIIGLE module to offer private storage disks for users.",
-   "keywords": [
-      "biigle",
-      "biigle-module"
-   ],
-   "license": "GPL-3.0-only",
-   "support": {
-      "source": "https://github.com/biigle/user-disks",
-      "issues": "https://github.com/biigle/user-disks/issues"
-   },
-   "homepage": "https://biigle.de",
-   "authors": [
-      {
-         "name": "Martin Zurowietz",
-         "email": "m.zurowietz@uni-bielefeld.de"
-      }
-   ],
-   "require": {
-      "biigle/laravel-elements-storage": "^2.2",
-      "league/flysystem-aws-s3-v3": "^3.12",
-      "league/flysystem-read-only": "^3.3",
-      "biigle/laravel-webdav": "^1.0",
-      "azure-oss/storage-blob-laravel": "^1.4"
-   },
-   "autoload": {
-      "psr-4": {
-         "Biigle\\Modules\\UserDisks\\": "src"
-      }
-   },
-   "extra": {
-      "laravel": {
-         "providers": [
-            "Biigle\\Modules\\UserDisks\\UserDisksServiceProvider"
-         ]
-      }
-   }
+    "name": "biigle/user-disks",
+    "description": "BIIGLE module to offer private storage disks for users.",
+    "keywords": [
+        "biigle",
+        "biigle-module"
+    ],
+    "license": "GPL-3.0-only",
+    "support": {
+        "source": "https://github.com/biigle/user-disks",
+        "issues": "https://github.com/biigle/user-disks/issues"
+    },
+    "homepage": "https://biigle.de",
+    "authors": [
+        {
+            "name": "Martin Zurowietz",
+            "email": "m.zurowietz@uni-bielefeld.de"
+        }
+    ],
+    "require": {
+        "biigle/laravel-elements-storage": "^2.2",
+        "league/flysystem-aws-s3-v3": "^3.12",
+        "league/flysystem-read-only": "^3.3",
+        "biigle/laravel-webdav": "^1.0",
+        "azure-oss/storage-blob-laravel": "^1.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Biigle\\Modules\\UserDisks\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Biigle\\Modules\\UserDisks\\UserDisksServiceProvider"
+            ]
+        }
+    }
 }
