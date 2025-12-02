@@ -1,7 +1,7 @@
-<h4><a name="azure-storage-blob"></a>Azure Blob Storage</h4>
+<h4><a name="azure"></a>Azure Blob Storage</h4>
 
 <p>
-    Azure Blob Storage is Microsoft's object storage solution for the cloud. You can use it to store massive amounts of unstructured data, such as text or binary data.
+    Azure Blob Storage is Microsoft's object storage solution for the cloud. An Azure storage disk can connect to one storage container in Azure.
 </p>
 
 <p>
