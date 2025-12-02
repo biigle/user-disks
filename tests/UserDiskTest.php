@@ -133,21 +133,17 @@ class UserDiskTest extends ModelTestCase
                 'name' => 'account-name',
                 'key' => 'account-key',
                 'container' => 'container-name',
-                'url' => 'https://account.blob.core.windows.net/container',
-                'endpoint' => 'https://account.blob.core.windows.net',
-                'sas_token' => '?sv=...',
+                'connection_string' => 'DefaultEndpointsProtocol=https;BlobEndpoint=https://mytest.blob.core.windows.net;SharedAccessSignature=sv=2025-07-05&spr=https&st=2025-11-26T16%3A59%3A32Z&se=2026-11-27T16%3A59%3A00Z&sr=c&sp=rl&sig=123412431234%3D',
             ],
         ]);
 
         $expect = [
-            'driver' => 'azure',
+            'driver' => 'azure-storage-blob',
             'name' => 'account-name',
             'key' => 'account-key',
             'container' => 'container-name',
-            'url' => 'https://account.blob.core.windows.net/container',
-            'endpoint' => 'https://account.blob.core.windows.net',
-            'sas_token' => '?sv=...',
             'read-only' => true,
+            'connection_string' => 'DefaultEndpointsProtocol=https;BlobEndpoint=https://mytest.blob.core.windows.net;SharedAccessSignature=sv=2025-07-05&spr=https&st=2025-11-26T16%3A59%3A32Z&se=2026-11-27T16%3A59%3A00Z&sr=c&sp=rl&sig=123412431234%3D',
         ];
 
         $this->assertEquals($expect, $disk->getConfig());
