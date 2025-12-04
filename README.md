@@ -8,7 +8,7 @@ This is a BIIGLE module that offers private storage disks for users.
 
 This module supports `s3`, `webdav`, `elements`, `dcache` and `aruna` storage disks but by default only S3 is enabled. Configure the enabled storage disk types as a comma-separated list with the `USER_DISKS_TYPES` environment variable (e.g. `s3,webdav`).
 
-### Required Packages by Disk Type
+### Required Configuration by Disk Type
 
 Different storage disk types require additional packages to be installed:
 
@@ -26,6 +26,7 @@ Different storage disk types require additional packages to be installed:
   ```bash
   composer require biigle/laravel-webdav biigle/laravel-socialite-haai
   ```
+  Follow the installation instructions of [`biigle/laravel-socialite-haai`](https://github.com/biigle/laravel-socialite-haai) in case it wasn't set up laready (e.g via `biigle/auth-haai`). In addition, you have to add the `DCACHE_TOKEN_EXCHANGE_CLIENT_ID` and `DCACHE_TOKEN_EXCHANGE_CLIENT_SECRET` variables to the `.env` file. These are the OICD credentials for the dCache Keycloak.
 
 Install only the packages for the disk types you plan to enable.
 

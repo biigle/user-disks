@@ -145,6 +145,14 @@ return [
     ],
 
     /*
+     | OIDC credentials for the token exchange with the dCache Keycloak.
+     */
+    'dcache-token-exchange' => [
+       'client_id' => env('DCACHE_TOKEN_EXCHANGE_CLIENT_ID'),
+       'client_secret' => env('DCACHE_TOKEN_EXCHANGE_CLIENT_SECRET'),
+    ],
+
+    /*
      | Number of months until a UserDisk expires after the last access.
      */
     'expires_months' => env('USER_DISKS_EXPIRES_MONTHS', 6),

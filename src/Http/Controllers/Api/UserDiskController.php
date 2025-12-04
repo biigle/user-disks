@@ -102,9 +102,8 @@ class UserDiskController extends Controller
 
 
         $postData = [
-            // TODO throw exception if not configured
-            'client_id' => config('services.dcache-token-exchange.client_id'),
-            'client_secret' => config('services.dcache-token-exchange.client_secret'),
+            'client_id' => config('user_disks.dcache-token-exchange.client_id'),
+            'client_secret' => config('user_disks.dcache-token-exchange.client_secret'),
             'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
             'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
             'subject_token' => $user->token,

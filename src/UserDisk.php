@@ -194,8 +194,8 @@ class UserDisk extends Model
         }
 
         $postData = [
-            'client_id' => config('services.dcache-token-exchange.client_id'),
-            'client_secret' => config('services.dcache-token-exchange.client_secret'),
+            'client_id' => config('user_disks.dcache-token-exchange.client_id'),
+            'client_secret' => config('user_disks.dcache-token-exchange.client_secret'),
             'grant_type' => 'refresh_token',
             'refresh_token' => $refreshToken,
             // This has to exactly match the scope of the refresh token!
