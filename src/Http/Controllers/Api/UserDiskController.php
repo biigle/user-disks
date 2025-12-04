@@ -103,7 +103,9 @@ class UserDiskController extends Controller
             throw $e; //TODO
         }
 
+
         $postData = [
+            // TODO throw exception if not configured
             'client_id' => config('services.dcache-token-exchange.client_id'),
             'client_secret' => config('services.dcache-token-exchange.client_secret'),
             'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
@@ -128,7 +130,6 @@ class UserDiskController extends Controller
         // job runs every hour and refreshes all tokens with a refresh_token expiring within the next 2 hours
         // token refresh with a valid refresh_token has to be implemented in the storage disk resolver somehow (i.e. if a file is requested and the token is invalid but the refresh_token is valid, the token is automatically refreshed within the same request)
         // => Do this in UserDisk::extend()!
-
 
         $diskOptions = [
             'token' => $data['access_token'],

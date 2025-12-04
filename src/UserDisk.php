@@ -198,6 +198,9 @@ class UserDisk extends Model
             'client_secret' => config('services.dcache-token-exchange.client_secret'),
             'grant_type' => 'refresh_token',
             'refresh_token' => $refreshToken,
+            // This has to exactly match the scope of the refresh token!
+            // TODO Auth still fails after token refresh. Missing scopes?
+            'scope' => 'acr roles entitlements groups web-origins openid basic token-exchange profile email',
         ];
 
         try {
