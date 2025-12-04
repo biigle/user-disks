@@ -87,11 +87,11 @@ return [
             'baseUri' => 'required|url',
             'userName' => 'required_with:password',
             'password' => 'required_with:userName',
-            'pathPrefix' => 'filled',
+            'pathPrefix' => 'nullable',
         ],
 
         'dcache' => [
-            'pathPrefix' => 'filled',
+            'pathPrefix' => 'nullable',
         ],
 
         'elements' => [
@@ -124,11 +124,11 @@ return [
             'baseUri' => 'filled|url',
             'userName' => 'required_with:password',
             'password' => 'required_with:userName',
-            'pathPrefix' => 'filled',
+            'pathPrefix' => 'nullable',
         ],
 
         'dcache' => [
-            'pathPrefix' => 'filled',
+            'pathPrefix' => 'nullable',
         ],
 
         'elements' => [
