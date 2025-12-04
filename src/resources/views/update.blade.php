@@ -58,10 +58,10 @@
                         @method('PUT')
                         <div class="form-group clearfix">
                             <span class="pull-right">
-                                <button type="submit" form="delete-form" class="btn btn-danger" title="Delete {{$disk->name}}">
+                                <button type="submit" form="delete-form" class="btn btn-danger" title="Delete {{$disk->name}}" onclick="this.disabled=true;this.nextElementSibling.disabled=true;this.form.submit();">
                                     Delete disk
                                 </button>
-                                <button type="submit" class="btn btn-success">
+                                <button type="submit" class="btn btn-success" onclick="this.disabled=true;this.previousElementSibling.disabled=true;this.form.submit();">
                                     Update disk
                                 </button>
                             </span>
