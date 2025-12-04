@@ -1347,6 +1347,32 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals($expect, $disk->options);
     }
 
+    public function testUpdateDCache()
+    {
+        config(['user_disks.types' => ['dcache']]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'name' => 'my dcache',
+            'options' => [
+                'token' => 'access_token',
+                'refresh_token' => 'refresh_token',
+                'token_expires_at' => now()->addHour(),
+                'refresh_token_expires_at' => now()->addDay(),
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'pathPrefix' => '/user/data',
+            ])
+            ->assertStatus(200);
+
+        $disk->refresh();
+        $this->assertSame('/user/data', $disk->options['pathPrefix']);
+    }
+
     public function testExtend()
     {
         config(['user_disks.about_to_expire_weeks' => 4]);

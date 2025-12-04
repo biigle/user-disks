@@ -56,10 +56,6 @@ class UserDiskController extends Controller
      */
     public function store(StoreUserDisk $request)
     {
-        // TODO implement optional path prefix for dcache
-
-        // TODO implement/update tests
-
         // TODO put dcache storage disk provider to separate package so
         // biigle/laravel-socialite-haai isnt installed everywhere?
         // Same with biigle/laravel-elements-storage?
@@ -68,6 +64,7 @@ class UserDiskController extends Controller
 
         if ($request->input('type') === 'dcache') {
             $request->session()->put('dcache-disk-name', $request->input('name'));
+            $request->session()->put('dcache-disk-pathPrefix', $request->input('pathPrefix'));
 
             return Socialite::driver('haai')
                 ->redirectUrl(url('/user-disks/dcache/callback'))
@@ -125,6 +122,7 @@ class UserDiskController extends Controller
         $data = $response->json();
 
         $name = $request->session()->pull('dcache-disk-name');
+        $pathPrefix = $request->session()->pull('dcache-disk-pathPrefix');
 
         // TODO implement scheduled job to refresh tokens
         // job runs every hour and refreshes all tokens with a refresh_token expiring within the next 2 hours
@@ -137,6 +135,10 @@ class UserDiskController extends Controller
             'token_expires_at' => now()->addSeconds($data['expires_in']),
             'refresh_token_expires_at' => now()->addSeconds($data['refresh_expires_in']),
         ];
+
+        if ($pathPrefix) {
+            $diskOptions['pathPrefix'] = $pathPrefix;
+        }
 
         return $this->validateAndCreateDisk($name, 'dcache', $request->user()->id, $diskOptions);
     }
