@@ -15,11 +15,13 @@
       }
     ],
     "require": {
-        "biigle/laravel-elements-storage": "^2.2",
         "league/flysystem-aws-s3-v3": "^3.12",
-        "league/flysystem-read-only": "^3.3",
-        "biigle/laravel-webdav": "^1.0",
-        "biigle/laravel-socialite-haai": "^1.2"
+        "league/flysystem-read-only": "^3.3"
+    },
+    "suggest": {
+        "biigle/laravel-elements-storage": "Required if the 'elements' disk type should be enabled",
+        "biigle/laravel-webdav": "Required if the 'webdav' and/or 'dcache' disk type should be enabled",
+        "biigle/laravel-socialite-haai": "Required if the 'dcache' disk type should be enabled"
     },
     "autoload": {
       "psr-4": {

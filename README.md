@@ -6,7 +6,28 @@ This is a BIIGLE module that offers private storage disks for users.
 
 ## Configuration
 
-This module supports `s3`, `webdav`, `elements` and `aruna` storage disks but by default only S3 is enabled. Configure the enabled storage disk types as a comma-separated list with the `USER_DISKS_TYPES` environment variable (e.g. `s3,webdav`).
+This module supports `s3`, `webdav`, `elements`, `dcache` and `aruna` storage disks but by default only S3 is enabled. Configure the enabled storage disk types as a comma-separated list with the `USER_DISKS_TYPES` environment variable (e.g. `s3,webdav`).
+
+### Required Packages by Disk Type
+
+Different storage disk types require additional packages to be installed:
+
+- **S3**: No additional packages required (included by default)
+- **Aruna**: No additional packages required (included by default but disabled)
+- **Elements**: Requires `biigle/laravel-elements-storage`
+  ```bash
+  composer require biigle/laravel-elements-storage
+  ```
+- **WebDAV**: Requires `biigle/laravel-webdav`
+  ```bash
+  composer require biigle/laravel-webdav
+  ```
+- **dCache**: Requires both `biigle/laravel-webdav` and `biigle/laravel-socialite-haai`
+  ```bash
+  composer require biigle/laravel-webdav biigle/laravel-socialite-haai
+  ```
+
+Install only the packages for the disk types you plan to enable.
 
 ## Installation
 
