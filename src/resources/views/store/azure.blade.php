@@ -15,7 +15,7 @@
     <div class="col-xs-12">
         <div class="form-group @error('connection_string') has-error @enderror">
             <label>Connection String <span class="text-danger">*</span></label>
-            <textarea v-model="connectionString" name="connection_string" class="form-control" rows="3" placeholder="DefaultEndpointsProtocol=http;BlobEndpoint=...;SharedAccessSignature=..." :readonly="url.length > 0" required>{{old('connection_string')}}</textarea>
+            <textarea v-model="connectionString" name="connection_string" class="form-control" rows="3" placeholder="DefaultEndpointsProtocol=http;BlobEndpoint=...;SharedAccessSignature=..." :readonly="parsedUrl !== null" required>{{old('connection_string')}}</textarea>
             <p class="help-block">
                 Will be autofilled if SAS URL is given. You can find the connection string in the Azure Portal under your Storage Account → Security + networking → Access keys.
             </p>
@@ -28,7 +28,7 @@
     <div class="col-xs-12">
         <div class="form-group @error('container') has-error @enderror">
             <label>Container <span class="text-danger">*</span></label>
-            <input v-model="containerName" type="text" name="container" class="form-control" value="{{old('container')}}" placeholder="Container Name" :readonly="url.length > 0" required>
+            <input v-model="containerName" type="text" name="container" class="form-control" value="{{old('container')}}" placeholder="Container Name" :readonly="parsedUrl !== null" required>
             @error('container')
                 <p class="help-block">{{$message}}</p>
             @enderror
@@ -54,7 +54,11 @@ biigle.$mount('azure-disk-store-form', {
                 return null;
             }
 
-            url = new URL(url);
+            try {
+                url = new URL(url);
+            } catch (e) {
+                return null;
+            }
             const pathParts = url.pathname.split('/').filter(p => p);
 
             let containerName = '';
