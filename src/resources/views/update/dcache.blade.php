@@ -1,7 +1,16 @@
+@php
+    $expiresAt = Illuminate\Support\Carbon::parse($disk->options['refresh_token_expires_at']);
+@endphp
 <div class="col-xs-12">
-    <p class="text-muted">
-        dCache is connected through your Helmholtz AAI account. Click on "update disk" below to renew the authentication process.
-    </p>
+    @if ($expiresAt->isPast())
+        <p class="text-warning">
+            Your dCache access token is expired and cannot be automatically refreshed. Click on "update disk" below to request a new token.
+        </p>
+    @else
+        <p class="text-muted">
+            dCache is connected through your Helmholtz AAI account.
+        </p>
+    @endif
 </div>
 <div class="col-xs-12">
     <div class="form-group @error('pathPrefix') has-error @enderror">

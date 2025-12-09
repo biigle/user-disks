@@ -61,14 +61,15 @@ class UserDiskController extends Controller
             $request->session()->put('dcache-disk-name', $request->input('name'));
             $request->session()->put('dcache-disk-pathPrefix', $request->input('pathPrefix'));
 
-            return Socialite::driver('haai')
-                ->redirectUrl(url('/user-disks/dcache/callback'))
-                // eduperson_principal_name is critical for the token exchange!
-                ->setScopes(['openid', 'profile', 'email', 'eduperson_principal_name'])
-                ->redirect();
+            return $this->dCacheAuthFlow();
         }
 
-        return $this->validateAndCreateDisk($request->input('name'), $request->input('type'), $request->user()->id, $request->getDiskOptions());
+        return $this->validateAndCreateDisk(
+            $request->input('name'),
+            $request->input('type'),
+            $request->user()->id,
+            $request->getDiskOptions()
+        );
     }
 
     /**
@@ -80,12 +81,20 @@ class UserDiskController extends Controller
      * @apiPermission editor
      * @apiDescription This is the callback URL for the dCache OIDC authentication flow.
      */
-    public function storeDCacheCallback(Request $request)
+    public function dCacheCallback(Request $request)
     {
         // TODO implement dcache temp url via macaroon in new filesystem adapter
         /*
             curl -E /tmp/x509up_u1000 -X POST -H 'Content-Type: application/macaroon-request' -d '{"caveats": ["activity:DOWNLOAD", "before:2019-09-25T08:12:11.080Z"]}' https://dcache.example.org/
          */
+
+        $id = $request->session()->pull('dcache-disk-id');
+        if (is_null($id)) {
+            $redirectResponse = redirect()->route('create-storage-disks');
+        } else {
+            $redirectResponse = redirect()->route('update-storage-disks', $id);
+        }
+
 
         try {
             $user = Socialite::driver('haai')
@@ -94,7 +103,7 @@ class UserDiskController extends Controller
         } catch (Exception $e) {
             Log::error('There was an error while obtaining HAAI user attributes.', ['exception' => $e]);
 
-            return redirect()->route('create-storage-disks')
+            return $redirectResponse
                 ->with('messageType', 'danger')
                 ->with('message', 'There was an error while obtaining the user attributes.');
         }
@@ -115,16 +124,12 @@ class UserDiskController extends Controller
         } catch (Exception $e) {
             Log::error('There was an error while obtaining a dCache token.', ['exception' => $e]);
 
-            return redirect()->route('create-storage-disks')
+            return $redirectResponse
                 ->with('messageType', 'danger')
                 ->with('message', 'There was an error while obtaining a dCache token.');
         }
 
         $data = $response->json();
-
-        $name = $request->session()->pull('dcache-disk-name');
-        $pathPrefix = $request->session()->pull('dcache-disk-pathPrefix');
-
         $diskOptions = [
             'token' => $data['access_token'],
             'refresh_token' => $data['refresh_token'],
@@ -132,11 +137,49 @@ class UserDiskController extends Controller
             'refresh_token_expires_at' => now()->addSeconds($data['refresh_expires_in']),
         ];
 
-        if ($pathPrefix) {
-            $diskOptions['pathPrefix'] = $pathPrefix;
+        // The auth flow was initiated for a new storage disk.
+        if (is_null($id)) {
+            if (!$request->user()->can('create', UserDisk::class)) {
+                return redirect()->route('create-storage-disks')
+                ->with('messageType', 'danger')
+                ->with('message', 'You are not authorized to create a storage disk.');
+            }
+
+            $name = $request->session()->pull('dcache-disk-name');
+            $pathPrefix = $request->session()->pull('dcache-disk-pathPrefix');
+
+            if ($pathPrefix) {
+                $diskOptions['pathPrefix'] = $pathPrefix;
+            }
+
+            return $this->validateAndCreateDisk(
+                $name,
+                'dcache',
+                $request->user()->id,
+                $diskOptions
+            );
         }
 
-        return $this->validateAndCreateDisk($name, 'dcache', $request->user()->id, $diskOptions);
+        // Otherwise the auth flow was initiated for an existing storage disk.
+        $disk = UserDisk::find($id);
+
+        if (is_null($disk)) {
+            return redirect()->route('create-storage-disks')
+                ->with('messageType', 'danger')
+                ->with('message', 'The storage disk could not be found.');
+        } else if (!$request->user()->can('update', $disk)) {
+            return redirect()->route('create-storage-disks')
+                ->with('messageType', 'danger')
+                ->with('message', 'You are not authorized to update this storage disk.');
+        }
+
+        $disk->options = array_merge($disk->options, $diskOptions);
+        $disk->save();
+
+        return $redirectResponse
+            ->with('messageType', 'success')
+            ->with('message', 'The dCache token was refreshed.');
+
     }
 
     /**
@@ -210,10 +253,7 @@ class UserDiskController extends Controller
      */
     public function update(UpdateUserDisk $request)
     {
-        // TODO: Update dcache token if refresh token is still valid otherwise get new
-        // token
-
-        DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request) {
             $request->disk->name = $request->input('name', $request->disk->name);
             $request->disk->options = array_merge(
                 $request->disk->options,
@@ -222,18 +262,24 @@ class UserDiskController extends Controller
 
             $request->disk->save();
 
+            if ($request->disk->isDCacheRefreshTokenExpiring()) {
+                $request->session()->put('dcache-disk-id', $request->disk->id);
+
+                return $this->dCacheAuthFlow();
+            }
+
             match ($request->disk->type) {
                 's3' => $this->validateS3Config($request->disk),
                 'aruna' => $this->validateS3Config($request->disk),
                 default => $this->validateGenericConfig($request->disk),
             };
-        });
 
-        if (!$this->isAutomatedRequest()) {
-            return $this->fuzzyRedirect()
-                ->with('message', 'Storage disk updated')
-                ->with('messageType', 'success');
-        }
+            if (!$this->isAutomatedRequest()) {
+                return $this->fuzzyRedirect()
+                    ->with('message', 'Storage disk updated')
+                    ->with('messageType', 'success');
+            }
+        });
     }
 
     /**
@@ -353,5 +399,17 @@ class UserDiskController extends Controller
         $files = $disk->getAdapter()->listContents('', false);
         // Need to access an element to verify whether the endpoint URL is valid
         $files->current();
+    }
+
+    /**
+     * Start the authentication flow for dCache.
+     */
+    protected function dCacheAuthFlow()
+    {
+        return Socialite::driver('haai')
+            ->redirectUrl(url('/user-disks/dcache/callback'))
+            // eduperson_principal_name is critical for the token exchange!
+            ->setScopes(['openid', 'profile', 'email', 'eduperson_principal_name'])
+            ->redirect();
     }
 }

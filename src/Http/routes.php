@@ -38,5 +38,5 @@ $router->group([
 $router->get('/user-disks/dcache/callback', [
     'middleware' => ['web', 'auth'],
     'as'   => 'dcache-callback',
-    'uses' => 'Api\UserDiskController@storeDCacheCallback',
+    'uses' => 'Api\UserDiskController@dCacheCallback',
 ]);
