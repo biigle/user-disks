@@ -1543,4 +1543,184 @@ class UserDiskControllerTest extends ApiTestCase
         $disk = UserDisk::where('user_id', $this->user()->id)->first();
         $this->assertNull($disk);
     }
+
+    public function testUpdateDCachePrefixWithValidRefreshToken()
+    {
+        config(['user_disks.types' => ['dcache']]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'name' => 'my dcache',
+            'options' => [
+                'token' => 'access_token',
+                'refresh_token' => 'refresh_token',
+                'token_expires_at' => now()->addHour(),
+                'refresh_token_expires_at' => now()->addHours(3),
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'pathPrefix' => '/new/path',
+        ])
+        ->assertStatus(200);
+
+        $disk->refresh();
+        $this->assertSame('/new/path', $disk->options['pathPrefix']);
+        $this->assertEquals('access_token', $disk->options['token']);
+        $this->assertEquals('refresh_token', $disk->options['refresh_token']);
+    }
+
+    public function testUpdateDCacheWithExpiredRefreshToken()
+    {
+        config([
+            'user_disks.types' => ['dcache'],
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+        ]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'name' => 'my dcache',
+            'options' => [
+                'token' => 'old_access_token',
+                'refresh_token' => 'old_refresh_token',
+                'token_expires_at' => now()->addMinutes(30),
+                'refresh_token_expires_at' => now()->addHour(),
+                'pathPrefix' => '/old/path',
+            ],
+        ]);
+
+        $this->be($disk->user);
+
+        $socialiteUser = (object) ['token' => 'oidc-access-token'];
+
+        $socialiteProvider = Mockery::mock(Provider::class);
+        $socialiteProvider->shouldReceive('redirectUrl')->with(url('/user-disks/dcache/callback'))->andReturnSelf();
+        $socialiteProvider->shouldReceive('setScopes')->with(['openid', 'profile', 'email', 'eduperson_principal_name'])->andReturnSelf();
+        $socialiteProvider->shouldReceive('user')->andReturn($socialiteUser);
+        $socialiteProvider->shouldReceive('redirect');
+
+        Socialite::shouldReceive('driver')
+            ->with('haai')
+            ->andReturn($socialiteProvider);
+
+        Http::fake([
+            UserDisk::DCACHE_TOKEN_ENDPOINT => Http::response([
+                'access_token' => 'new-access-token',
+                'refresh_token' => 'new-refresh-token',
+                'expires_in' => 3600,
+                'refresh_expires_in' => 86400,
+            ], 200),
+        ]);
+
+        $response = $this->putJson("/api/v1/user-disks/{$disk->id}", [
+            'pathPrefix' => '/new/path',
+        ]);
+
+        $this->assertEquals($disk->id, session('dcache-disk-id'));
+
+        $response = $this->get('/user-disks/dcache/callback');
+
+        $disk->refresh();
+        $this->assertEquals('new-access-token', $disk->options['token']);
+        $this->assertEquals('new-refresh-token', $disk->options['refresh_token']);
+        $this->assertEquals('/new/path', $disk->options['pathPrefix']);
+        $this->assertArrayHasKey('token_expires_at', $disk->options);
+        $this->assertArrayHasKey('refresh_token_expires_at', $disk->options);
+    }
+
+    public function testUpdateDCacheWithExpiredRefreshTokenErrorObtainingAAIAttributes()
+    {
+        config([
+            'user_disks.types' => ['dcache'],
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+        ]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'name' => 'my dcache',
+            'options' => [
+                'token' => 'old_access_token',
+                'refresh_token' => 'old_refresh_token',
+                'token_expires_at' => now()->addMinutes(30),
+                'refresh_token_expires_at' => now()->addHour(),
+            ],
+        ]);
+
+        $this->be($disk->user);
+
+
+        $socialiteProvider = Mockery::mock(Provider::class);
+        $socialiteProvider->shouldReceive('redirectUrl')->andThrow(new Exception);
+
+        Socialite::shouldReceive('driver')
+            ->with('haai')
+            ->andReturn($socialiteProvider);
+
+        Log::shouldReceive('error')->once();
+
+        session(['dcache-disk-id' => $disk->id]);
+        $response = $this->get('/user-disks/dcache/callback');
+
+        $response->assertRedirect(route('update-storage-disks', $disk->id));
+        $response->assertSessionHas('messageType', 'danger');
+        $response->assertSessionHas('message', 'There was an error while obtaining the user attributes.');
+
+        $disk->refresh();
+        $this->assertEquals('old_access_token', $disk->options['token']);
+        $this->assertEquals('old_refresh_token', $disk->options['refresh_token']);
+    }
+
+    public function testUpdateDCacheWithExpiredRefreshTokenErrorDuringTokenExchange()
+    {
+        config([
+            'user_disks.types' => ['dcache'],
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+        ]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'name' => 'my dcache',
+            'options' => [
+                'token' => 'old_access_token',
+                'refresh_token' => 'old_refresh_token',
+                'token_expires_at' => now()->addMinutes(30),
+                'refresh_token_expires_at' => now()->addHour(),
+            ],
+        ]);
+
+        $this->be($disk->user);
+
+
+        $socialiteUser = (object) ['token' => 'oidc-access-token'];
+
+        $socialiteProvider = Mockery::mock(Provider::class);
+        $socialiteProvider->shouldReceive('redirectUrl')->andReturnSelf();
+        $socialiteProvider->shouldReceive('setScopes')->andReturnSelf();
+        $socialiteProvider->shouldReceive('user')->andReturn($socialiteUser);
+
+        Socialite::shouldReceive('driver')
+            ->with('haai')
+            ->andReturn($socialiteProvider);
+
+        Log::shouldReceive('error')->once();
+
+        Http::shouldReceive('asForm')->andReturnSelf();
+        Http::shouldReceive('post')->andThrow(new Exception);
+
+        session(['dcache-disk-id' => $disk->id]);
+        $response = $this->get('/user-disks/dcache/callback');
+
+        $response->assertRedirect(route('update-storage-disks', $disk->id));
+        $response->assertSessionHas('messageType', 'danger');
+        $response->assertSessionHas('message', 'There was an error while obtaining a dCache token.');
+
+        $disk->refresh();
+        $this->assertEquals('old_access_token', $disk->options['token']);
+        $this->assertEquals('old_refresh_token', $disk->options['refresh_token']);
+    }
 }

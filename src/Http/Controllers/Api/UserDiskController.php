@@ -141,8 +141,8 @@ class UserDiskController extends Controller
         if (is_null($id)) {
             if (!$request->user()->can('create', UserDisk::class)) {
                 return redirect()->route('create-storage-disks')
-                ->with('messageType', 'danger')
-                ->with('message', 'You are not authorized to create a storage disk.');
+                    ->with('messageType', 'danger')
+                    ->with('message', 'You are not authorized to create a storage disk.');
             }
 
             $name = $request->session()->pull('dcache-disk-name');
