@@ -2,11 +2,15 @@
 
 namespace Biigle\Tests\Modules\UserDisks\Http\Controllers\Api;
 
-use Exception;
-use Mockery;
 use ApiTestCase;
-use Biigle\Modules\UserDisks\UserDisk;
 use Biigle\Modules\UserDisks\Http\Controllers\Api\UserDiskController;
+use Biigle\Modules\UserDisks\UserDisk;
+use Exception;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Laravel\Socialite\Contracts\Provider;
+use Laravel\Socialite\Facades\Socialite;
+use Mockery;
 
 class UserDiskControllerTest extends ApiTestCase
 {
@@ -1418,5 +1422,125 @@ class UserDiskControllerTest extends ApiTestCase
         $this->be($disk->user);
         $this->deleteJson("/api/v1/user-disks/{$disk->id}")->assertStatus(200);
         $this->assertNull($disk->fresh());
+    }
+
+    public function testStoreDCacheSuccess()
+    {
+        config([
+            'user_disks.types' => ['dcache'],
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+        ]);
+
+        $this->beUser();
+
+        $socialiteUser = (object) ['token' => 'oidc-access-token'];
+
+        $socialiteProvider = Mockery::mock(Provider::class);
+        $socialiteProvider->shouldReceive('redirectUrl')->with(url('/user-disks/dcache/callback'))->andReturnSelf();
+        $socialiteProvider->shouldReceive('setScopes')->with(['openid', 'profile', 'email', 'eduperson_principal_name'])->andReturnSelf();
+        $socialiteProvider->shouldReceive('user')->andReturn($socialiteUser);
+        $socialiteProvider->shouldReceive('redirect');
+
+        Socialite::shouldReceive('driver')
+            ->with('haai')
+            ->andReturn($socialiteProvider);
+
+        Http::fake([
+            UserDisk::DCACHE_TOKEN_ENDPOINT => Http::response([
+                'access_token' => 'dcache-access-token',
+                'refresh_token' => 'dcache-refresh-token',
+                'expires_in' => 3600,
+                'refresh_expires_in' => 86400,
+            ], 200),
+        ]);
+
+        $response = $this->post("/api/v1/user-disks", [
+            'name' => 'my dcache disk',
+            'type' => 'dcache',
+            'pathPrefix' => '/user/data',
+        ]);
+
+        $this->assertEquals('my dcache disk', session('dcache-disk-name'));
+        $this->assertEquals('/user/data', session('dcache-disk-pathPrefix'));
+
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $response = $this->get('/user-disks/dcache/callback');
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNotNull($disk);
+        $this->assertEquals('my dcache disk', $disk->name);
+        $this->assertEquals('dcache', $disk->type);
+        $this->assertNotNull($disk->expires_at);
+        $this->assertEquals('dcache-access-token', $disk->options['token']);
+        $this->assertEquals('dcache-refresh-token', $disk->options['refresh_token']);
+        $this->assertEquals('/user/data', $disk->options['pathPrefix']);
+        $this->assertArrayHasKey('token_expires_at', $disk->options);
+        $this->assertArrayHasKey('refresh_token_expires_at', $disk->options);
+    }
+
+    public function testStoreDCacheErrorObtainingAAIAttributes()
+    {
+        config([
+            'user_disks.types' => ['dcache'],
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+        ]);
+
+        $this->beUser();
+
+        $socialiteProvider = Mockery::mock(Provider::class);
+        $socialiteProvider->shouldReceive('redirectUrl')->andThrow(new Exception);
+
+        Socialite::shouldReceive('driver')
+            ->with('haai')
+            ->andReturn($socialiteProvider);
+
+        Log::shouldReceive('error')->once();
+
+        $response = $this->get('/user-disks/dcache/callback');
+
+        $response->assertRedirect(route('create-storage-disks'));
+        $response->assertSessionHas('messageType', 'danger');
+        $response->assertSessionHas('message', 'There was an error while obtaining the user attributes.');
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNull($disk);
+    }
+
+    public function testStoreDCacheErrorDuringTokenExchange()
+    {
+        config([
+            'user_disks.types' => ['dcache'],
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+        ]);
+
+        $this->beUser();
+
+        $socialiteUser = (object) ['token' => 'oidc-access-token'];
+
+        $socialiteProvider = Mockery::mock(Provider::class);
+        $socialiteProvider->shouldReceive('redirectUrl')->andReturnSelf();
+        $socialiteProvider->shouldReceive('setScopes')->andReturnSelf();
+        $socialiteProvider->shouldReceive('user')->andReturn($socialiteUser);
+
+        Socialite::shouldReceive('driver')
+            ->with('haai')
+            ->andReturn($socialiteProvider);
+
+        Log::shouldReceive('error')->once();
+
+        Http::shouldReceive('asForm')->andReturnSelf();
+        Http::shouldReceive('post')->andThrow(new Exception);
+
+        $response = $this->get('/user-disks/dcache/callback');
+
+        $response->assertRedirect(route('create-storage-disks'));
+        $response->assertSessionHas('messageType', 'danger');
+        $response->assertSessionHas('message', 'There was an error while obtaining a dCache token.');
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNull($disk);
     }
 }
