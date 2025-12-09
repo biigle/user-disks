@@ -46,6 +46,7 @@ jobs:
       run: |
         composer config repositories.module --json '{"type": "path", "url": "'${GITHUB_WORKSPACE}'", "options": {"symlink": false}}'
         composer require --no-ansi --no-interaction --no-scripts --ignore-platform-reqs ${GITHUB_REPOSITORY}:@dev
+        composer require --no-ansi --no-interaction --no-scripts --ignore-platform-reqs biigle/laravel-socialite-haai
         mkdir -p tests/php/Modules
         ln -sf ../../../vendor/${GITHUB_REPOSITORY}/tests tests/php/Modules/${MODULE_NAME}
         php artisan package:discover
