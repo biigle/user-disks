@@ -8,13 +8,14 @@ use Biigle\Modules\UserDisks\Http\Requests\StoreUserDisk;
 use Biigle\Modules\UserDisks\Http\Requests\UpdateUserDisk;
 use Biigle\Modules\UserDisks\UserDisk;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 class UserDiskController extends Controller
 {
@@ -56,12 +57,6 @@ class UserDiskController extends Controller
      */
     public function store(StoreUserDisk $request)
     {
-        // TODO put dcache storage disk provider to separate package so
-        // biigle/laravel-socialite-haai isnt installed everywhere?
-        // Same with biigle/laravel-elements-storage?
-        // Alternative: disable elements and dcache and add to readme that packages
-        // have to be installed to enable the two.
-
         if ($request->input('type') === 'dcache') {
             $request->session()->put('dcache-disk-name', $request->input('name'));
             $request->session()->put('dcache-disk-pathPrefix', $request->input('pathPrefix'));
@@ -97,7 +92,11 @@ class UserDiskController extends Controller
                 ->redirectUrl(url('/user-disks/dcache/callback'))
                 ->user();
         } catch (Exception $e) {
-            throw $e; //TODO
+            Log::error('There was an error while obtaining HAAI user attributes.', ['exception' => $e]);
+
+            return redirect()->route('create-storage-disks')
+                ->with('messageType', 'danger')
+                ->with('message', 'There was an error while obtaining the user attributes.');
         }
 
 
@@ -114,19 +113,17 @@ class UserDiskController extends Controller
         try {
             $response = Http::asForm()->post(UserDisk::DCACHE_TOKEN_ENDPOINT, $postData);
         } catch (Exception $e) {
-            throw $e;
-            // TODO Handle error, not authorized to access dCache?
+            Log::error('There was an error while obtaining a dCache token.', ['exception' => $e]);
+
+            return redirect()->route('create-storage-disks')
+                ->with('messageType', 'danger')
+                ->with('message', 'There was an error while obtaining a dCache token.');
         }
 
         $data = $response->json();
 
         $name = $request->session()->pull('dcache-disk-name');
         $pathPrefix = $request->session()->pull('dcache-disk-pathPrefix');
-
-        // TODO implement scheduled job to refresh tokens
-        // job runs every hour and refreshes all tokens with a refresh_token expiring within the next 2 hours
-        // token refresh with a valid refresh_token has to be implemented in the storage disk resolver somehow (i.e. if a file is requested and the token is invalid but the refresh_token is valid, the token is automatically refreshed within the same request)
-        // => Do this in UserDisk::extend()!
 
         $diskOptions = [
             'token' => $data['access_token'],
