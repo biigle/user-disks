@@ -40,7 +40,7 @@ return [
         ],
 
         'dcache' => [
-            'driver' => 'webdav',
+            'driver' => 'dcache',
             'baseUri' => 'https://hifis-storage.desy.de:2880',
             'pathPrefix' => '',
         ],

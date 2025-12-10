@@ -20,7 +20,8 @@
     },
     "suggest": {
         "biigle/laravel-elements-storage": "Required if the 'elements' disk type should be enabled",
-        "biigle/laravel-webdav": "Required if the 'webdav' and/or 'dcache' disk type should be enabled",
+        "biigle/laravel-webdav": "Required if the 'webdav' disk type should be enabled",
+        "biigle/laravel-dcache": "Required if the 'dcache' disk type should be enabled",
         "biigle/laravel-socialite-haai": "Required if the 'dcache' disk type should be enabled"
     },
     "autoload": {
