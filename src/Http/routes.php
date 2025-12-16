@@ -13,6 +13,7 @@ $router->group([
     $router->post('user-disks/{id}/extend', 'UserDiskController@extend');
 });
 
+
 $router->group([
     'namespace' => 'Views',
     'middleware' => ['web', 'auth'],
@@ -31,4 +32,11 @@ $router->group([
         'as' => 'update-storage-disks',
         'uses' => 'UserDiskController@update',
     ]);
+
 });
+
+$router->get('/user-disks/dcache/callback', [
+    'middleware' => ['web', 'auth'],
+    'as'   => 'dcache-callback',
+    'uses' => 'Api\UserDiskController@dCacheCallback',
+]);

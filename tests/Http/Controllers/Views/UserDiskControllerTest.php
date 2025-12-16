@@ -53,6 +53,12 @@ class UserDiskControllerTest extends ApiTestCase
         $this->get('storage-disks/create?type=aruna&name=abc')->assertStatus(200);
     }
 
+    public function testCreateDCache()
+    {
+        $this->beUser();
+        $this->get('storage-disks/create?type=dcache&name=abc')->assertStatus(200);
+    }
+
     public function testCreateAzure()
     {
         $this->beUser();
@@ -122,6 +128,21 @@ class UserDiskControllerTest extends ApiTestCase
                 'endpoint' => 'aruna.example.com',
                 'bucket' => 'example',
              ],
+        ]);
+        $this->be($disk->user);
+        $this->get("storage-disks/{$disk->id}")->assertStatus(200);
+    }
+
+    public function testUpdateDCache()
+    {
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'options' => [
+                'token' => 'access_token',
+                'refresh_token' => 'refresh_token',
+                'token_expires_at' => now()->addHour(),
+                'refresh_token_expires_at' => now()->addDay(),
+            ],
         ]);
         $this->be($disk->user);
         $this->get("storage-disks/{$disk->id}")->assertStatus(200);
