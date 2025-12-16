@@ -16,9 +16,6 @@
         <div class="form-group @error('connection_string') has-error @enderror">
             <label>Connection String <span class="text-danger">*</span></label>
             <textarea v-model="connectionString" name="connection_string" class="form-control" rows="3" placeholder="DefaultEndpointsProtocol=http;BlobEndpoint=...;SharedAccessSignature=..." :readonly="parsedUrl !== null" required>{{old('connection_string')}}</textarea>
-            <p class="help-block">
-                Will be autofilled if SAS URL is given. You can find the connection string in the Azure Portal under your Storage Account → Security + networking → Access keys.
-            </p>
             @error('connection_string')
                 <p class="help-block">{{$message}}</p>
             @enderror
