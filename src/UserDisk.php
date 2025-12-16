@@ -19,6 +19,7 @@ class UserDisk extends Model
         'webdav' => 'WebDAV',
         'elements' => 'Elements',
         'aruna' => 'Aruna',
+        'azure' => 'Azure Blob Storage',
     ];
 
     /**
