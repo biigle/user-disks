@@ -699,6 +699,49 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals($expect, $disk->options);
     }
 
+    public function testStoreAzure()
+    {
+        $this->beUser();
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'azure',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['type']);
+
+        config(['user_disks.types' => ['azure']]);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'azure',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['connection_string', 'container']);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'azure',
+                'connection_string' => 'DefaultEndpointsProtocol=https;BlobEndpoint=https://example.blob.core.windows.net;SharedAccessSignature=sv=...',
+                'container' => 'example-container',
+            ])
+            ->assertStatus(201);
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNotNull($disk);
+        $this->assertEquals('my disk', $disk->name);
+        $this->assertEquals('azure', $disk->type);
+        $this->assertNotNull($disk->expires_at);
+        $expect = [
+            'connection_string' => 'DefaultEndpointsProtocol=https;BlobEndpoint=https://example.blob.core.windows.net;SharedAccessSignature=sv=...',
+            'container' => 'example-container',
+        ];
+        $this->assertEquals($expect, $disk->options);
+    }
+
     public function testUpdate()
     {
         $disk = UserDisk::factory()->create([
@@ -1375,6 +1418,38 @@ class UserDiskControllerTest extends ApiTestCase
 
         $disk->refresh();
         $this->assertSame('/user/data', $disk->options['pathPrefix']);
+    }
+
+    public function testUpdateAzure()
+    {
+        config(['user_disks.types' => ['azure']]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'azure',
+            'name' => 'abc',
+            'options' => [
+                'connection_string' => 'DefaultEndpointsProtocol=https;BlobEndpoint=https://example.blob.core.windows.net;SharedAccessSignature=sv=...',
+                'container' => 'example-container',
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'name' => 'cba',
+                'connection_string' => 'DefaultEndpointsProtocol=https;BlobEndpoint=https://updated.blob.core.windows.net;SharedAccessSignature=sv=...',
+                'container' => 'updated-container',
+            ])
+            ->assertStatus(200);
+
+        $disk->refresh();
+        $expect = [
+            'connection_string' => 'DefaultEndpointsProtocol=https;BlobEndpoint=https://updated.blob.core.windows.net;SharedAccessSignature=sv=...',
+            'container' => 'updated-container',
+        ];
+        $this->assertEquals('azure', $disk->type);
+        $this->assertEquals('cba', $disk->name);
+        $this->assertEquals($expect, $disk->options);
     }
 
     public function testExtend()

@@ -126,6 +126,31 @@ class UserDiskTest extends ModelTestCase
         $this->assertEquals($expect, $disk->getConfig());
     }
 
+    public function testGetAzureConfig()
+    {
+        $disk = UserDisk::factory()->make([
+            'type' => 'azure',
+            'options' => [
+                'name' => 'account-name',
+                'key' => 'account-key',
+                'container' => 'container-name',
+                'connection_string' => 'DefaultEndpointsProtocol=https;BlobEndpoint=https://mytest.blob.core.windows.net;SharedAccessSignature=sv=2025-07-05&spr=https&st=2025-11-26T16%3A59%3A32Z&se=2026-11-27T16%3A59%3A00Z&sr=c&sp=rl&sig=123412431234%3D',
+            ],
+        ]);
+
+        $expect = [
+            'driver' => 'azure-storage-blob',
+            'name' => 'account-name',
+            'key' => 'account-key',
+            'container' => 'container-name',
+            'read-only' => true,
+            'use_direct_public_url' => true,
+            'connection_string' => 'DefaultEndpointsProtocol=https;BlobEndpoint=https://mytest.blob.core.windows.net;SharedAccessSignature=sv=2025-07-05&spr=https&st=2025-11-26T16%3A59%3A32Z&se=2026-11-27T16%3A59%3A00Z&sr=c&sp=rl&sig=123412431234%3D',
+        ];
+
+        $this->assertEquals($expect, $disk->getConfig());
+    }
+
     public function testGetConfigTemplateDoesNotExist()
     {
         $this->expectException(\TypeError::class);
@@ -149,6 +174,11 @@ class UserDiskTest extends ModelTestCase
         $this->assertNotEmpty(UserDisk::getStoreValidationRules('s3'));
     }
 
+    public function testGetStoreValidationRulesAzure()
+    {
+        $this->assertNotEmpty(UserDisk::getStoreValidationRules('azure'));
+    }
+
     public function testGetUpdateValidationRules()
     {
         $rules = [
@@ -163,6 +193,11 @@ class UserDiskTest extends ModelTestCase
     public function testGetUpdateValidationRulesS3()
     {
         $this->assertNotEmpty(UserDisk::getUpdateValidationRules('s3'));
+    }
+
+    public function testGetUpdateValidationRulesAzure()
+    {
+        $this->assertNotEmpty(UserDisk::getUpdateValidationRules('azure'));
     }
 
     public function testIsAboutToExpire()

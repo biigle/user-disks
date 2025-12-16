@@ -1,18 +1,21 @@
 {
     "name": "biigle/user-disks",
     "description": "BIIGLE module to offer private storage disks for users.",
-    "keywords": ["biigle", "biigle-module"],
+    "keywords": [
+        "biigle",
+        "biigle-module"
+    ],
     "license": "GPL-3.0-only",
     "support": {
-      "source": "https://github.com/biigle/user-disks",
-      "issues": "https://github.com/biigle/user-disks/issues"
+        "source": "https://github.com/biigle/user-disks",
+        "issues": "https://github.com/biigle/user-disks/issues"
     },
     "homepage": "https://biigle.de",
     "authors": [
-      {
-         "name": "Martin Zurowietz",
-         "email": "m.zurowietz@uni-bielefeld.de"
-      }
+        {
+            "name": "Martin Zurowietz",
+            "email": "m.zurowietz@uni-bielefeld.de"
+        }
     ],
     "require": {
         "league/flysystem-aws-s3-v3": "^3.12",
@@ -21,13 +24,14 @@
     "suggest": {
         "biigle/laravel-elements-storage": "Required if the 'elements' disk type should be enabled",
         "biigle/laravel-webdav": "Required if the 'webdav' disk type should be enabled",
+        "biigle/laravel-azure-storage": "Required if the 'azure' disk type should be enabled",
         "biigle/laravel-dcache": "Required if the 'dcache' disk type should be enabled",
         "biigle/laravel-socialite-haai": "Required if the 'dcache' disk type should be enabled"
     },
     "autoload": {
-      "psr-4": {
-         "Biigle\\Modules\\UserDisks\\": "src"
-      }
+        "psr-4": {
+            "Biigle\\Modules\\UserDisks\\": "src"
+        }
     },
     "extra": {
         "laravel": {

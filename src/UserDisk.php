@@ -28,6 +28,7 @@ class UserDisk extends Model
         'elements' => 'Elements',
         'aruna' => 'Aruna',
         'dcache' => 'dCache',
+        'azure' => 'Azure Blob Storage',
     ];
 
     /**

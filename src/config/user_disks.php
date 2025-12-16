@@ -2,7 +2,8 @@
 
 return [
     /*
-     | Available types for new storage disks. Supported are: s3, webdav, elements, aruna.
+     | Available types for new storage disks. Supported are: s3, webdav, elements, aruna,
+     | azure.
      */
     'types' => array_filter(explode(',', env('USER_DISKS_TYPES', 's3'))),
 
@@ -68,6 +69,13 @@ return [
             'secret' => '',
             'endpoint' => '',
         ],
+
+        'azure' => [
+            'driver' => 'azure-storage-blob',
+            'connection_string' => '',
+            'container' => '',
+            'use_direct_public_url' => true,
+        ],
     ],
 
     /*
@@ -105,6 +113,11 @@ return [
             'key' => 'required',
             'secret' => 'required',
         ],
+
+        'azure' => [
+            'connection_string' => 'required',
+            'container' => 'required',
+        ],
     ],
 
     /*
@@ -141,6 +154,11 @@ return [
             'endpoint' => 'filled|url',
             'key' => 'filled',
             'secret' => 'filled',
+        ],
+
+        'azure' => [
+            'connection_string' => 'filled',
+            'container' => 'filled',
         ],
     ],
 
