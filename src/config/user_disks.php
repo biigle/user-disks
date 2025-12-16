@@ -68,6 +68,7 @@ return [
             'driver' => 'azure-storage-blob',
             'connection_string' => '',
             'container' => '',
+            'use_direct_public_url' => true,
         ],
     ],
 
