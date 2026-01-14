@@ -25,9 +25,9 @@ Different storage disk types require additional packages to be installed:
   ```bash
   composer require biigle/laravel-elements-storage
   ```
-- **dCache**: Requires both `biigle/laravel-webdav` and `biigle/laravel-socialite-haai`
+- **dCache**: Requires both `biigle/laravel-dcache` and `biigle/laravel-socialite-haai`
   ```bash
-  composer require biigle/laravel-webdav biigle/laravel-socialite-haai
+  composer require biigle/laravel-dcache biigle/laravel-socialite-haai
   ```
   Follow the installation instructions of [`biigle/laravel-socialite-haai`](https://github.com/biigle/laravel-socialite-haai) in case it wasn't set up laready (e.g via `biigle/auth-haai`). In addition, you have to add the `DCACHE_TOKEN_EXCHANGE_CLIENT_ID` and `DCACHE_TOKEN_EXCHANGE_CLIENT_SECRET` variables to the `.env` file. These are the OICD credentials for the dCache Keycloak.
 - **Aruna**: No additional packages required (included by default but disabled)
