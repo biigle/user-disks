@@ -50,9 +50,19 @@
                     <a href="#s3">S3</a>
                 </li>
             @endif
+            @if(in_array('azure', config('user_disks.types')))
+                <li>
+                    <a href="#azure">Azure Blob Storage</a>
+                </li>
+            @endif
             @if(in_array('webdav', config('user_disks.types')))
                 <li>
                     <a href="#webdav">WebDAV</a>
+                </li>
+            @endif
+            @if(in_array('dcache', config('user_disks.types')))
+                <li>
+                    <a href="#dcache">dCache</a>
                 </li>
             @endif
             @if(in_array('elements', config('user_disks.types')))
@@ -63,11 +73,6 @@
             @if(in_array('aruna', config('user_disks.types')))
                 <li>
                     <a href="#aruna">Aruna</a>
-                </li>
-            @endif
-            @if(in_array('azure', config('user_disks.types')))
-                <li>
-                    <a href="#azure">Azure Blob Storage</a>
                 </li>
             @endif
             @if(empty(config('user_disks.types')))
@@ -81,8 +86,16 @@
             @include("user-disks::manual.types.s3")
         @endif
 
+        @if(in_array('azure', config('user_disks.types')))
+            @include("user-disks::manual.types.azure")
+        @endif
+
         @if(in_array('webdav', config('user_disks.types')))
             @include("user-disks::manual.types.webdav")
+        @endif
+
+        @if(in_array('dcache', config('user_disks.types')))
+            @include("user-disks::manual.types.dcache")
         @endif
 
         @if(in_array('elements', config('user_disks.types')))
@@ -93,8 +106,6 @@
             @include("user-disks::manual.types.aruna")
         @endif
 
-        @if(in_array('azure', config('user_disks.types')))
-            @include("user-disks::manual.types.azure")
-        @endif
+
     </div>
 @endsection

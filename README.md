@@ -6,26 +6,31 @@ This is a BIIGLE module that offers private storage disks for users.
 
 ## Configuration
 
-This module supports `s3`, `webdav`, `elements` and `aruna` storage disks but by default only S3 is enabled. Configure the enabled storage disk types as a comma-separated list with the `USER_DISKS_TYPES` environment variable (e.g. `s3,webdav`).
+This module supports `s3`, `azure`, `webdav`, [`elements`](https://elements.tv), [`dcache`](https://hifis-storage.desy.de) and [`aruna`](https://aruna-engine.org) storage disks but by default only S3 is enabled. Configure the enabled storage disk types as a comma-separated list with the `USER_DISKS_TYPES` environment variable (e.g. `s3,webdav`).
 
 ### Required Configuration by Disk Type
 
 Different storage disk types require additional packages to be installed:
 
 - **S3**: No additional packages required (included by default)
-- **Aruna**: No additional packages required (included by default but disabled)
-- **Elements**: Requires `biigle/laravel-elements-storage`
-  ```bash
-  composer require biigle/laravel-elements-storage
+- **Azure**: Requires `biigle/laravel-azure-storage`
+   ```bash
+  composer require biigle/laravel-azure-storage
   ```
 - **WebDAV**: Requires `biigle/laravel-webdav`
   ```bash
   composer require biigle/laravel-webdav
   ```
-- **Azure**: Requires `biigle/laravel-azure-storage`
-   ```bash
-  composer require biigle/laravel-azure-storage
+- **Elements**: Requires `biigle/laravel-elements-storage`
+  ```bash
+  composer require biigle/laravel-elements-storage
   ```
+- **dCache**: Requires both `biigle/laravel-dcache` and `biigle/laravel-socialite-haai`
+  ```bash
+  composer require biigle/laravel-dcache biigle/laravel-socialite-haai
+  ```
+  Follow the installation instructions of [`biigle/laravel-socialite-haai`](https://github.com/biigle/laravel-socialite-haai) in case it wasn't set up laready (e.g via `biigle/auth-haai`). In addition, you have to add the `DCACHE_TOKEN_EXCHANGE_CLIENT_ID` and `DCACHE_TOKEN_EXCHANGE_CLIENT_SECRET` variables to the `.env` file. These are the OICD credentials for the dCache Keycloak.
+- **Aruna**: No additional packages required (included by default but disabled)
 
 Install only the packages for the disk types you plan to enable.
 

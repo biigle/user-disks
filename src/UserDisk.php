@@ -4,12 +4,20 @@ namespace Biigle\Modules\UserDisks;
 
 use Biigle\Modules\UserDisks\Database\Factories\UserDiskFactory;
 use Biigle\User;
+use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 
 class UserDisk extends Model
 {
     use HasFactory;
+
+    /**
+     * Endpoint URL for dCache token exchange and refresh.
+     */
+    const DCACHE_TOKEN_ENDPOINT = "https://keycloak.desy.de/auth/realms/production/protocol/openid-connect/token";
 
     /**
      * Map of type key to type name/description.
@@ -19,6 +27,7 @@ class UserDisk extends Model
         'webdav' => 'WebDAV',
         'elements' => 'Elements',
         'aruna' => 'Aruna',
+        'dcache' => 'dCache',
         'azure' => 'Azure Blob Storage',
     ];
 
@@ -129,5 +138,89 @@ class UserDisk extends Model
     public function extend()
     {
         $this->update(['expires_at' => now()->addMonths(config('user_disks.expires_months'))]);
+    }
+
+    /**
+     * Check if the dcache access token is about to expire (within 1 minute) or already
+     * expired.
+     *
+     * @return bool
+     */
+    public function isDCacheAccessTokenExpiring()
+    {
+        if ($this->type !== 'dcache') {
+            return false;
+        }
+
+        $tokenExpiresAt = $this->options['token_expires_at'] ?? null;
+
+        if (is_null($tokenExpiresAt)) {
+            return false;
+        }
+
+        return Carbon::parse($tokenExpiresAt) <= now()->addMinute();
+    }
+
+    /**
+     * Check if the dcache refresh token is about to expire (within 2 hours).
+     *
+     * @return bool
+     */
+    public function isDCacheRefreshTokenExpiring()
+    {
+        if ($this->type !== 'dcache') {
+            return false;
+        }
+
+        $refreshTokenExpiresAt = $this->options['refresh_token_expires_at'] ?? null;
+
+        if (is_null($refreshTokenExpiresAt)) {
+            return false;
+        }
+
+        return Carbon::parse($refreshTokenExpiresAt) <= now()->addHours(2);
+    }
+
+    /**
+     * Refresh the dcache access and refresh tokens.
+     *
+     * @return bool True if the refresh was successful, false otherwise
+     */
+    public function refreshDCacheToken()
+    {
+        $refreshToken = $this->options['refresh_token'] ?? null;
+
+        if (!$refreshToken) {
+            return false;
+        }
+
+        $postData = [
+            'client_id' => config('user_disks.dcache-token-exchange.client_id'),
+            'client_secret' => config('user_disks.dcache-token-exchange.client_secret'),
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $refreshToken,
+        ];
+
+        try {
+            $response = Http::asForm()->post(static::DCACHE_TOKEN_ENDPOINT, $postData);
+        } catch (Exception $e) {
+            return false;
+        }
+
+        if (!$response->successful()) {
+            return false;
+        }
+
+        $data = $response->json();
+
+        $options = $this->options;
+        $options['token'] = $data['access_token'];
+        $options['refresh_token'] = $data['refresh_token'];
+        $options['token_expires_at'] = now()->addSeconds($data['expires_in']);
+        $options['refresh_token_expires_at'] = now()->addSeconds($data['refresh_expires_in']);
+
+        $this->update(['options' => $options]);
+
+        return true;
     }
 }

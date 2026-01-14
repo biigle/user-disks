@@ -3,8 +3,10 @@
 namespace Biigle\Modules\UserDisks;
 
 use Biigle\Http\Requests\UpdateUserSettings;
+use Biigle\Modules\AuthHaai\SocialiteProvider;
 use Biigle\Modules\UserDisks\Console\Commands\CheckExpiredUserDisks;
 use Biigle\Modules\UserDisks\Console\Commands\PruneExpiredUserDisks;
+use Biigle\Modules\UserDisks\Console\Commands\RefreshDCacheTokens;
 use Biigle\Modules\UserStorage\UserStorageServiceProvider;
 use Biigle\Services\Modules;
 use Biigle\User;
@@ -13,6 +15,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
+use SocialiteProviders\Manager\SocialiteWasCalled;
 
 class UserDisksServiceProvider extends ServiceProvider
 {
@@ -71,6 +74,7 @@ class UserDisksServiceProvider extends ServiceProvider
             $this->commands([
                 CheckExpiredUserDisks::class,
                 PruneExpiredUserDisks::class,
+                RefreshDCacheTokens::class,
             ]);
 
             $this->app->booted(function () {
@@ -81,6 +85,10 @@ class UserDisksServiceProvider extends ServiceProvider
 
                 $schedule->command(PruneExpiredUserDisks::class)
                     ->daily()
+                    ->onOneServer();
+
+                $schedule->command(RefreshDCacheTokens::class)
+                    ->hourly()
                     ->onOneServer();
             });
         }
@@ -111,6 +119,11 @@ class UserDisksServiceProvider extends ServiceProvider
                     // Disks are automatically extended each time they are used.
                     $disk->extend();
 
+                    // Refresh dcache token if it's about to expire.
+                    if ($disk->isDCacheAccessTokenExpiring()) {
+                        $disk->refreshDCacheToken();
+                    }
+
                     return $disk->getConfig();
                 }
             }
@@ -124,7 +137,8 @@ class UserDisksServiceProvider extends ServiceProvider
      */
     protected function overrideUseDiskGateAbility()
     {
-        // Override gate to allow own user disk.
+        // Only extend the use-disk gate (if it exists) because other modules may use
+        // it too.
         $abilities = Gate::abilities();
         $useDiskAbility = $abilities['use-disk'] ?? fn () => false;
         Gate::define('use-disk', function (User $user, $disk) use ($useDiskAbility) {

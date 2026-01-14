@@ -58,7 +58,7 @@
                     <div class="col-xs-12">
                         @csrf
                         <div class="form-group clearfix">
-                            <button type="submit" class="btn btn-success pull-right">
+                            <button type="submit" class="btn btn-success pull-right" onclick="this.disabled=true;this.form.submit();">
                                 @if ($stepTwo)
                                     Create disk
                                 @else

@@ -40,6 +40,12 @@ return [
             'pathPrefix' => '',
         ],
 
+        'dcache' => [
+            'driver' => 'dcache',
+            'baseUri' => 'https://hifis-storage.desy.de:2880',
+            'pathPrefix' => '',
+        ],
+
         'elements' => [
             'driver' => 'elements',
             'baseUri' => '',
@@ -89,7 +95,11 @@ return [
             'baseUri' => 'required|url',
             'userName' => 'required_with:password',
             'password' => 'required_with:userName',
-            'pathPrefix' => 'filled',
+            'pathPrefix' => 'nullable',
+        ],
+
+        'dcache' => [
+            'pathPrefix' => 'nullable',
         ],
 
         'elements' => [
@@ -127,7 +137,11 @@ return [
             'baseUri' => 'filled|url',
             'userName' => 'required_with:password',
             'password' => 'required_with:userName',
-            'pathPrefix' => 'filled',
+            'pathPrefix' => 'nullable',
+        ],
+
+        'dcache' => [
+            'pathPrefix' => 'nullable',
         ],
 
         'elements' => [
@@ -146,6 +160,14 @@ return [
             'connection_string' => 'filled',
             'container' => 'filled',
         ],
+    ],
+
+    /*
+     | OIDC credentials for the token exchange with the dCache Keycloak.
+     */
+    'dcache-token-exchange' => [
+       'client_id' => env('DCACHE_TOKEN_EXCHANGE_CLIENT_ID'),
+       'client_secret' => env('DCACHE_TOKEN_EXCHANGE_CLIENT_SECRET'),
     ],
 
     /*
