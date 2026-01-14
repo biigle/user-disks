@@ -83,11 +83,7 @@ class UserDiskController extends Controller
      */
     public function dCacheCallback(Request $request)
     {
-        // TODO implement dcache temp url via macaroon in new filesystem adapter
-        /*
-            curl -E /tmp/x509up_u1000 -X POST -H 'Content-Type: application/macaroon-request' -d '{"caveats": ["activity:DOWNLOAD", "before:2019-09-25T08:12:11.080Z"]}' https://dcache.example.org/
-         */
-
+        // This is null if a new disk is created.
         $id = $request->session()->pull('dcache-disk-id');
         if (is_null($id)) {
             $redirectResponse = redirect()->route('create-storage-disks');
