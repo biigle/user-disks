@@ -1,8 +1,5 @@
-@php
-    $expiresAt = Illuminate\Support\Carbon::parse($disk->options['refresh_token_expires_at']);
-@endphp
 <div class="col-xs-12">
-    @if ($expiresAt->isPast())
+    @if (Illuminate\Support\Carbon::parse($disk->options['refresh_token_expires_at'])->isPast())
         <p class="text-warning">
             Your dCache access token is expired and cannot be automatically refreshed. Click on "update disk" below to request a new token.
         </p>

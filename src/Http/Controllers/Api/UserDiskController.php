@@ -85,12 +85,19 @@ class UserDiskController extends Controller
     {
         // This is null if a new disk is created.
         $id = $request->session()->pull('dcache-disk-id');
+
         if (is_null($id)) {
             $redirectResponse = redirect()->route('create-storage-disks');
+
+            if (!$request->user()->can('create', UserDisk::class)) {
+                return $redirectResponse
+                    ->with('messageType', 'danger')
+                    ->with('message', 'You are not authorized to create a storage disk.');
+            }
+
         } else {
             $redirectResponse = redirect()->route('update-storage-disks', $id);
         }
-
 
         try {
             $user = Socialite::driver('haai')
@@ -103,7 +110,6 @@ class UserDiskController extends Controller
                 ->with('messageType', 'danger')
                 ->with('message', 'There was an error while obtaining the user attributes.');
         }
-
 
         $postData = [
             'client_id' => config('user_disks.dcache-token-exchange.client_id'),
@@ -139,12 +145,6 @@ class UserDiskController extends Controller
 
         // The auth flow was initiated for a new storage disk.
         if (is_null($id)) {
-            if (!$request->user()->can('create', UserDisk::class)) {
-                return redirect()->route('create-storage-disks')
-                    ->with('messageType', 'danger')
-                    ->with('message', 'You are not authorized to create a storage disk.');
-            }
-
             $name = $request->session()->pull('dcache-disk-name');
             $pathPrefix = $request->session()->pull('dcache-disk-pathPrefix');
 
