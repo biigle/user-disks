@@ -117,6 +117,10 @@ class UserDiskController extends Controller
             'subject_token' => $user->token,
             'subject_issuer' => 'oidc',
             'audience' => 'token-exchange',
+            // Setting the scope here is critical, otherwise the scope will be reset
+            // to the default scope after token refresh (and the token will no longer
+            // work for dCache).
+            'scope' => 'entitlements groups openid token-exchange profile email',
         ];
 
         try {
