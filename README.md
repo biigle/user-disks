@@ -6,7 +6,7 @@ This is a BIIGLE module that offers private storage disks for users.
 
 ## Configuration
 
-This module supports `s3`, `azure`, `webdav`, `elements`, `dcache` and `aruna` storage disks but by default only S3 is enabled. Configure the enabled storage disk types as a comma-separated list with the `USER_DISKS_TYPES` environment variable (e.g. `s3,webdav`).
+This module supports `s3`, `azure`, `webdav`, [`elements`](https://elements.tv), [`dcache`](https://hifis-storage.desy.de) and [`aruna`](https://aruna-engine.org) storage disks but by default only S3 is enabled. Configure the enabled storage disk types as a comma-separated list with the `USER_DISKS_TYPES` environment variable (e.g. `s3,webdav`).
 
 ### Required Configuration by Disk Type
 
