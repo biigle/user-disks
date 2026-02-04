@@ -415,21 +415,9 @@ class UserDiskControllerTest extends ApiTestCase
             'type' => 's3',
             'key' => 'abc',
             'secret' => 'abc',
-            'bucket' => 'ucket',
+            'bucket' => 'bucke',
             'region' => '',
-            'endpoint' => 'http://bucket.example.com',
-        ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
-
-        $this->mockController->shouldReceive('validateDiskAccess')->never();
-        $this->postJson("/api/v1/user-disks", [
-            'name' => 'my disk',
-            'type' => 's3',
-            'key' => 'abc',
-            'secret' => 'abc',
-            'bucket' => 'bucket',
-            'region' => '',
-            'endpoint' => 'http://ucket.example.com',
+            'endpoint' => 'https://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
@@ -441,7 +429,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'ucket',
             'region' => '',
-            'endpoint' => 'http://example.com/bucket',
+            'endpoint' => 'https://example.com/bucket',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
@@ -451,11 +439,11 @@ class UserDiskControllerTest extends ApiTestCase
             'type' => 's3',
             'key' => 'abc',
             'secret' => 'abc',
-            'bucket' => 'bucket',
+            'bucket' => 'a€@æſðđŋ/¶ŧ←↓',
             'region' => '',
-            'endpoint' => 'http://example.com/ucket',
+            'endpoint' => 'https://bucket.example.com',
         ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
+            ->assertJsonValidationErrors(['bucket']);
 
         $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
@@ -463,11 +451,11 @@ class UserDiskControllerTest extends ApiTestCase
             'type' => 's3',
             'key' => 'abc',
             'secret' => 'abc',
-            'bucket' => 'bucket',
+            'bucket' => '/(https:\/\/|http:\/\/)[a-zA-Z\-\.]*/',
             'region' => '',
-            'endpoint' => 'http://bucket .example.com/',
+            'endpoint' => 'https://bucket.example.com',
         ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
+            ->assertJsonValidationErrors(['bucket']);
 
         $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
@@ -475,11 +463,11 @@ class UserDiskControllerTest extends ApiTestCase
             'type' => 's3',
             'key' => 'abc',
             'secret' => 'abc',
-            'bucket' => 'bucket',
+            'bucket' => 'buck..et',
             'region' => '',
-            'endpoint' => 'http://example.com/bucket.',
+            'endpoint' => 'https://bucket.example.com',
         ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
+            ->assertJsonValidationErrors(['bucket']);
 
         $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
@@ -487,22 +475,71 @@ class UserDiskControllerTest extends ApiTestCase
             'type' => 's3',
             'key' => 'abc',
             'secret' => 'abc',
-            'bucket' => 'bucket',
+            'bucket' => '-bucket',
             'region' => '',
-            'endpoint' => 'http://bucket/example.com/.',
+            'endpoint' => 'https://bucket.example.com',
         ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
+            ->assertJsonValidationErrors(['bucket']);
 
-        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
         $this->postJson("/api/v1/user-disks", [
-            'name' => 'my disk1',
+            'name' => 'my disk',
             'type' => 's3',
             'key' => 'abc',
             'secret' => 'abc',
-            'bucket' => 'bucket',
+            'bucket' => 'buck?t',
             'region' => '',
-            'endpoint' => 'http://example.com/bucket',
-        ])->assertSuccessful();
+            'endpoint' => 'https://bucket.example.com',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['bucket']);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'b',
+            'region' => '',
+            'endpoint' => 'https://bucket.example.com',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['bucket']);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbucket',
+            'region' => '',
+            'endpoint' => 'https://bucket.example.com',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['bucket']);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => '/bucket',
+            'region' => '',
+            'endpoint' => 'https://bucket.example.com',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['bucket']);
+
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => '/bucket/',
+            'region' => '',
+            'endpoint' => 'https://example.com/bucket/',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['bucket']);
 
         $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->postJson("/api/v1/user-disks", [
@@ -512,7 +549,62 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'http://bucket.example.com',
+            'endpoint' => 'https://bucket.example.com',
+        ])->assertSuccessful();
+
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk3',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'https://example.com/bucket',
+        ])->assertSuccessful();
+
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk4',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'bucket',
+            'region' => '',
+            'endpoint' => 'https://example.com/bucket/',
+        ])->assertSuccessful();
+
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk6',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'b.u.c.k.e.t',
+            'region' => '',
+            'endpoint' => 'https://b.u.c.k.e.t.example.com/',
+        ])->assertSuccessful();
+
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk7',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => 'b-u-c-k-e-t',
+            'region' => '',
+            'endpoint' => 'https://b-u-c-k-e-t.example.com/',
+        ])->assertSuccessful();
+
+        $this->mockController->shouldReceive('validateDiskAccess')->once();
+        $this->postJson("/api/v1/user-disks", [
+            'name' => 'my disk8',
+            'type' => 's3',
+            'key' => 'abc',
+            'secret' => 'abc',
+            'bucket' => '123bucket',
+            'region' => '',
+            'endpoint' => 'https://example.com/123bucket',
         ])->assertSuccessful();
     }
 
@@ -871,98 +963,6 @@ class UserDiskControllerTest extends ApiTestCase
         ]);
 
         $this->be($disk->user);
-
-        $this->mockController->shouldReceive('validateDiskAccess')->never();
-        $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'name' => 'cba',
-            'key' => 'fed',
-            'secret' => 'ihg',
-            'bucket' => 'm',
-            'region' => 'us-east-2',
-            'endpoint' => 'https://onm.example.com',
-        ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
-
-        $this->mockController->shouldReceive('validateDiskAccess')->never();
-        $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'name' => 'cba',
-            'key' => 'fed',
-            'secret' => 'ihg',
-            'bucket' => 'onm',
-            'region' => 'us-east-2',
-            'endpoint' => 'https://m.example.com',
-        ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
-
-        $this->mockController->shouldReceive('validateDiskAccess')->never();
-        $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'name' => 'cba',
-            'key' => 'fed',
-            'secret' => 'ihg',
-            'bucket' => 'm',
-            'region' => 'us-east-2',
-            'endpoint' => 'https://example.com/onm',
-        ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
-
-        $this->mockController->shouldReceive('validateDiskAccess')->never();
-        $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'name' => 'cba',
-            'key' => 'fed',
-            'secret' => 'ihg',
-            'bucket' => 'onm',
-            'region' => 'us-east-2',
-            'endpoint' => 'https://example.com/m',
-        ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
-
-        $this->mockController->shouldReceive('validateDiskAccess')->never();
-        $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 's3',
-            'name' => 'cba',
-            'key' => 'fed',
-            'secret' => 'ihg',
-            'bucket' => 'bucket',
-            'region' => 'us-east-2',
-            'endpoint' => 'https://example.com/bucket.',
-        ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
-
-        $this->mockController->shouldReceive('validateDiskAccess')->never();
-        $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 's3',
-            'name' => 'cba',
-            'key' => 'fed',
-            'secret' => 'ihg',
-            'bucket' => 'bucket',
-            'region' => 'us-east-2',
-            'endpoint' => 'https://bucket .example.com/',
-        ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
-
-        $this->mockController->shouldReceive('validateDiskAccess')->never();
-        $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 's3',
-            'name' => 'cba',
-            'key' => 'fed',
-            'secret' => 'ihg',
-            'bucket' => 'bucket',
-            'region' => 'us-east-2',
-            'endpoint' => 'https://bucket/example.com/',
-        ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['endpoint']);
-
-        $this->mockController->shouldReceive('validateDiskAccess')->once();
-        $this->putJson("/api/v1/user-disks/{$disk->id}", [
-            'type' => 's3',
-            'name' => 'cba',
-            'key' => 'fed',
-            'secret' => 'ihg',
-            'bucket' => 'bucket',
-            'region' => 'us-east-2',
-            'endpoint' => 'https://bucket.example.com/',
-        ])->assertSuccessful();
-
         $this->mockController->shouldReceive('validateDiskAccess')->once();
         $this->putJson("/api/v1/user-disks/{$disk->id}", [
             'type' => 's3',
