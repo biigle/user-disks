@@ -70,7 +70,7 @@ class UserDiskControllerTest extends ApiTestCase
                 'bucket' => 'bucket',
                 'region' => 'us-east-1',
                 // Use a trailing slash to trick the path-style detection.
-                'endpoint' => 'https://bucket.example.com/',
+                'endpoint' => 'http://bucket.example.com/',
             ])
             ->assertStatus(201);
 
@@ -84,7 +84,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => 'us-east-1',
-            'endpoint' => 'https://bucket.example.com/',
+            'endpoint' => 'http://bucket.example.com/',
             'use_path_style_endpoint' => false,
         ];
         $this->assertEquals($expect, $disk->options);
@@ -101,7 +101,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => 'us-east-1',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])
         ->assertStatus(201);
 
@@ -113,7 +113,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => 'us-east-1',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])
         ->assertStatus(422)
         ->assertJsonValidationErrors('name');
@@ -127,7 +127,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => 'us-east-1',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])
         ->assertStatus(201);
     }
@@ -143,7 +143,7 @@ class UserDiskControllerTest extends ApiTestCase
                 'secret' => 'abc',
                 'bucket' => 'bucket',
                 'region' => '',
-                'endpoint' => 'https://bucket.example.com',
+                'endpoint' => 'http://bucket.example.com',
             ])
             ->assertStatus(201);
 
@@ -169,7 +169,7 @@ class UserDiskControllerTest extends ApiTestCase
                 'secret' => 'abc',
                 'bucket' => 'bucket',
                 'region' => '',
-                'endpoint' => 'https://example.com/bucket',
+                'endpoint' => 'http://example.com/bucket',
             ])
             ->assertStatus(201);
 
@@ -182,7 +182,7 @@ class UserDiskControllerTest extends ApiTestCase
             'key' => 'abc',
             'secret' => 'abc',
             'bucket' => 'bucket',
-            'endpoint' => 'https://example.com/bucket',
+            'endpoint' => 'http://example.com/bucket',
             'use_path_style_endpoint' => true,
         ];
         $this->assertEquals($expect, $disk->options);
@@ -200,7 +200,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
@@ -212,7 +212,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
     }
@@ -228,7 +228,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
@@ -240,7 +240,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
@@ -252,7 +252,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
@@ -264,7 +264,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
     }
@@ -280,7 +280,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
@@ -292,7 +292,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
@@ -304,7 +304,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
@@ -316,7 +316,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
@@ -328,7 +328,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
@@ -340,7 +340,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
@@ -353,7 +353,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
 
@@ -365,7 +365,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
     }
@@ -381,7 +381,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'bucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['error']);
     }
@@ -397,7 +397,7 @@ class UserDiskControllerTest extends ApiTestCase
             'secret' => 'abc',
             'bucket' => 'ucket',
             'region' => '',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['endpoint']);
 
@@ -773,7 +773,7 @@ class UserDiskControllerTest extends ApiTestCase
                 'key' => 'abc',
                 'secret' => 'abc',
                 'bucket' => 'bucket',
-                'endpoint' => 'https://bucket.example.com',
+                'endpoint' => 'http://bucket.example.com',
             ])
             ->assertStatus(201);
 
@@ -786,7 +786,7 @@ class UserDiskControllerTest extends ApiTestCase
             'key' => 'abc',
             'secret' => 'abc',
             'bucket' => 'bucket',
-            'endpoint' => 'https://bucket.example.com',
+            'endpoint' => 'http://bucket.example.com',
         ];
         $this->assertEquals($expect, $disk->options);
     }
