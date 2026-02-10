@@ -1,7 +1,5 @@
 <?php
 
-use Biigle\Modules\UserDisks\Rules\BucketName;
-
 return [
     /*
      | Available types for new storage disks. Supported are: s3, webdav, elements, aruna,
@@ -86,7 +84,7 @@ return [
      */
     'store_validation' => [
         's3' => [
-            'bucket' => ['required','min:3', 'max:63', new BucketName()],
+            'bucket' => ['required','min:3', 'max:63', 's3_bucket_name'],
             'region' => 'nullable',
             'endpoint' => 'required|url',
             'key' => 'required',
@@ -128,7 +126,7 @@ return [
      */
     'update_validation' => [
         's3' => [
-            'bucket' => ['filled', 'min:3', 'max:63', new BucketName()],
+            'bucket' => ['filled', 'min:3', 'max:63', 's3_bucket_name'],
             'region' => 'nullable',
             'endpoint' => 'filled|url',
             'key' => 'filled',
