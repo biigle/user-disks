@@ -1,11 +1,10 @@
 <?php
 
-namespace Biigle\Modules\UserDisks\Rules;
+namespace Biigle\Modules\UserDisks\Validators;
 
 use Illuminate\Support\Str;
-use Illuminate\Contracts\Validation\Rule;
 
-class BucketName implements Rule
+class BucketName
 {
     /**
      * Determine if the validation rule passes.
@@ -14,7 +13,7 @@ class BucketName implements Rule
      * @param  mixed  $value
      * @return bool
      */
-    public function passes($attribute, $value)
+    public function validate($attribute, $value)
     {
         $sanitizedValue = preg_quote($value, '/');
 
@@ -37,15 +36,5 @@ class BucketName implements Rule
         }
 
         return true;
-    }
-
-    /**
-     * Get the validation error message.
-     *
-     * @return string
-     */
-    public function message()
-    {
-        return 'The bucket name contains invalid characters.';
     }
 }
