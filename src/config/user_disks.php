@@ -42,7 +42,7 @@ return [
 
         'dcache' => [
             'driver' => 'dcache',
-            'baseUri' => 'https://hifis-storage.desy.de:2880',
+            'baseUri' => 'https://hifis-storage-ht.desy.de:2880',
             'pathPrefix' => '',
         ],
 
