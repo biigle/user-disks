@@ -152,12 +152,16 @@ class UserDiskController extends Controller
                 $diskOptions['pathPrefix'] = $pathPrefix;
             }
 
-            return $this->validateAndCreateDisk(
-                $name,
-                'dcache',
-                $request->user()->id,
-                $diskOptions
-            );
+            try {
+                return $this->validateAndCreateDisk(
+                    $name,
+                    'dcache',
+                    $request->user()->id,
+                    $diskOptions
+                );
+            } catch (ValidationException $e) {
+                throw $e->redirectTo(route('create-storage-disks'));
+            }
         }
 
         // Otherwise the auth flow was initiated for an existing storage disk.
