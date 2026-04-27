@@ -56,6 +56,10 @@ class UserDiskControllerTest extends ApiTestCase
         $this->getJson('/api/v1/user-disks')
             ->assertStatus(200)
             ->assertExactJson([]);
+            
+        $this->beGlobalGuest();
+        $this->getJson('/api/v1/user-disks')
+            ->assertStatus(403);
     }
 
     public function testStore()
