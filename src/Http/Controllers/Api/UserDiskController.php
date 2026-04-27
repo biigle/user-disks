@@ -20,6 +20,24 @@ use Laravel\Socialite\Facades\Socialite;
 class UserDiskController extends Controller
 {
     /**
+     * Lists all storage disks of the authenticated user
+     * 
+     * @api {get} user-disks Get all storage disks for the authenticated user
+     * @apiGroup StorageDisks
+     * @apiName IndexStorageDisks
+     * @apiPermission user
+     * 
+     * @param Request $request
+     * @return \Illuminate\Database\Eloquent\Collection<int, \Biigle\Modules\UserDisks\UserDisk>
+     */
+    public function index(Request $request) 
+    {
+        return UserDisk::where('user_id', $request->user()->id)
+            ->orderBy('id')
+            ->get();
+    }    
+
+    /**
      * Initialize a new user storage disk
      *
      * @api {post} user-disks Create a new storage disk

@@ -22,6 +22,41 @@ class UserDiskControllerTest extends ApiTestCase
         $this->mockController = Mockery::mock(UserDiskController::class)->shouldAllowmockingProtectedMethods()->makePartial();
         $this->app->instance(UserDiskController::class, $this->mockController);
     }
+    
+    public function testIndex()
+    {
+        $user1 = $this->user();
+        $user2 = $this->editor();
+        $user3 = $this->guest();
+        
+        $disk1 = UserDisk::factory()->create([
+            'user_id' => $user1->id,
+            'name' => '1',
+        ]);
+        $disk2 = UserDisk::factory()->create([
+            'user_id' => $user2->id,
+            'name' => '2',
+        ]);
+        
+        $this->doTestApiRoute('GET', '/api/v1/user-disks');
+        
+        $this->be($user1);
+        $this->getJson('/api/v1/user-disks')
+            ->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['id' => $disk1->id, 'name' => '1']);
+            
+        $this->be($user2);
+        $this->getJson('/api/v1/user-disks')
+            ->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['id' => $disk2->id, 'name' => '2']);
+            
+        $this->be($user3);
+        $this->getJson('/api/v1/user-disks')
+            ->assertStatus(200)
+            ->assertExactJson([]);
+    }
 
     public function testStore()
     {
