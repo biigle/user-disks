@@ -32,6 +32,8 @@ class UserDiskController extends Controller
      */
     public function index(Request $request) 
     {
+        $this->authorize('create', UserDisk::class);
+        
         return UserDisk::where('user_id', $request->user()->id)
             ->select(['id', 'name', 'type', 'expires_at'])
             ->orderBy('id')
