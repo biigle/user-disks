@@ -30,8 +30,6 @@ class UserDiskController extends Controller
      * @param Request $request
      * @return \Illuminate\Database\Eloquent\Collection<int, \Biigle\Modules\UserDisks\UserDisk>
      */
-     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
-     */
     public function index(Request $request) 
     {
         return UserDisk::where('user_id', $request->user()->id)
