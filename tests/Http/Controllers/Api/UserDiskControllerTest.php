@@ -38,19 +38,23 @@ class UserDiskControllerTest extends ApiTestCase
             'name' => '2',
         ]);
         
+        $expectedKeys = ['id', 'name', 'type', 'expires_at'];
+        
         $this->doTestApiRoute('GET', '/api/v1/user-disks');
         
         $this->be($user1);
-        $this->getJson('/api/v1/user-disks')
+        $response = $this->getJson('/api/v1/user-disks')
             ->assertStatus(200)
             ->assertJsonCount(1)
             ->assertJsonFragment(['id' => $disk1->id, 'name' => '1']);
+        $this->assertEqualsCanonicalizing($expectedKeys, array_keys($response->json()[0]));
             
         $this->be($user2);
-        $this->getJson('/api/v1/user-disks')
+        $response = $this->getJson('/api/v1/user-disks')
             ->assertStatus(200)
             ->assertJsonCount(1)
             ->assertJsonFragment(['id' => $disk2->id, 'name' => '2']);
+        $this->assertEqualsCanonicalizing($expectedKeys, array_keys($response->json()[0]));
             
         $this->be($user3);
         $this->getJson('/api/v1/user-disks')
