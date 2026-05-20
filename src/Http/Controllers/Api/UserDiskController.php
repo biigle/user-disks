@@ -132,22 +132,45 @@ class UserDiskController extends Controller
                 ->with('message', 'There was an error while obtaining the user attributes.');
         }
 
-        $postData = [
-            'client_id' => config('user_disks.dcache-token-exchange.client_id'),
-            'client_secret' => config('user_disks.dcache-token-exchange.client_secret'),
-            'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
-            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-            'subject_token' => $user->token,
-            'subject_issuer' => 'oidc',
-            'audience' => 'token-exchange',
-            // Setting the scope here is critical, otherwise the scope will be reset
-            // to the default scope after token refresh (and the token will no longer
-            // work for dCache).
-            'scope' => 'entitlements groups openid token-exchange profile email',
-        ];
-
+        // Step 1: Exchange the HAAI token for one addressed to dCache Keycloak.
+        // The audience claim in the resulting token must match the Keycloak
+        // realm so Keycloak accepts it in the JWT Authorization Grant (step 2).
         try {
-            $response = Http::asForm()->post(UserDisk::DCACHE_TOKEN_ENDPOINT, $postData);
+            $url = config('user_disks.dcache-token-exchange.helmholtz_token_endpoint');
+            $helmholtzResponse = Http::asForm()->post($url, [
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token' => $user->token,
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'requested_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'audience' => config('user_disks.dcache-token-exchange.keycloak_audience'),
+                'scope' => 'openid profile email token-exchange',
+                'client_id' => config('services.haai.client_id'),
+                'client_secret' => config('services.haai.client_secret'),
+            ])->throw();
+        } catch (Exception $e) {
+            Log::error('There was an error during the HAAI token exchange.', ['exception' => $e]);
+
+            return $redirectResponse
+                ->with('messageType', 'danger')
+                ->with('message', 'There was an error during the HAAI token exchange.');
+        }
+
+        $intermediateToken = $helmholtzResponse->json()['access_token'];
+
+        // Step 2: JWT Authorization Grant: present the Keycloak-addressed token to
+        // Keycloak to obtain the final dCache access and refresh tokens.
+        try {
+            $url = config('user_disks.dcache-token-exchange.token_endpoint');
+            $response = Http::asForm()->post($url, [
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                'assertion' => $intermediateToken,
+                'client_id' => config('user_disks.dcache-token-exchange.client_id'),
+                'client_secret' => config('user_disks.dcache-token-exchange.client_secret'),
+                // Setting the scope here is critical, otherwise the scope will be reset
+                // to the default scope after token refresh (and the token will no longer
+                // work for dCache).
+                'scope' => 'openid profile email',
+            ])->throw();
         } catch (Exception $e) {
             Log::error('There was an error while obtaining a dCache token.', ['exception' => $e]);
 
