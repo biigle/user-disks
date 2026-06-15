@@ -1,6 +1,10 @@
 {
   "src/resources/assets/sass/main.scss": {
     "file": "assets/main-BeWfrGDw.css",
+    "name": "main",
+    "names": [
+      "main.css"
+    ],
     "src": "src/resources/assets/sass/main.scss",
     "isEntry": true
   }

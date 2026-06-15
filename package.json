@@ -7,10 +7,10 @@
     "build": "vite build && php ../../../artisan vendor:publish --provider Biigle\\\\Modules\\\\UserDisks\\\\UserDisksServiceProvider --tag public --force"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.1",
-    "laravel-vite-plugin": "^1.2.0",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "laravel-vite-plugin": "^3.1.0",
     "sass": "^1.15.2",
-    "vite": "^6.4.2",
+    "vite": "^8.0.16",
     "vite-plugin-externalize-dependencies": "^1.0.1"
   },
   "type": "module"
