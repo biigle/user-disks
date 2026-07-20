@@ -728,6 +728,20 @@ class UserDiskControllerTest extends ApiTestCase
             ->assertStatus(201);
     }
 
+    public function testStoreInvalidWebDAVUri()
+    {
+        config(['user_disks.types' => ['webdav']]);
+        $this->beUser();
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->postJson("/api/v1/user-disks", [
+                'name' => 'my disk',
+                'type' => 'webdav',
+                'baseUri' => 'myuser1234@my.domain.tdl:/my/path/to/images/',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['baseUri']);
+    }
+
     public function testStoreWebDAVPrefix()
     {
         config(['user_disks.types' => ['webdav']]);
@@ -1365,6 +1379,27 @@ class UserDiskControllerTest extends ApiTestCase
         $disk->refresh();
         $this->assertSame('https://example.com/', $disk->options['baseUri']);
         $this->assertSame('dir', $disk->options['pathPrefix']);
+    }
+
+    public function testUpdateInvalidWebDAVUri()
+    {
+        config(['user_disks.types' => ['webdav']]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'webdav',
+            'name' => 'abc',
+            'options' => [
+                'baseUri' => 'https://example.com',
+            ],
+        ]);
+
+        $this->be($disk->user);
+        $this->mockController->shouldReceive('validateDiskAccess')->never();
+        $this->putJson("/api/v1/user-disks/{$disk->id}", [
+                'baseUri' => 'myuser1234@my.domain.tdl:/my/path/to/images/',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['baseUri']);
     }
 
     public function testUpdateElements()

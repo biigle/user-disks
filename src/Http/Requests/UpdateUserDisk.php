@@ -5,6 +5,7 @@ namespace Biigle\Modules\UserDisks\Http\Requests;
 use Biigle\Modules\UserDisks\UserDisk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Uri;
+use League\Uri\Exceptions\SyntaxError;
 
 class UpdateUserDisk extends FormRequest
 {
@@ -60,7 +61,12 @@ class UpdateUserDisk extends FormRequest
         $this->replace(array_filter($this->all(), fn ($value) => !is_null($value)));
 
         if ($this->disk->type === 'webdav' && $this->has('baseUri')) {
-            $uri = Uri::of($this->input('baseUri'));
+            try {
+                $uri = Uri::of($this->input('baseUri'));
+            } catch (SyntaxError) {
+                return;
+            }
+
             $path = $uri->path();
             if ($path && $path !== '/') {
                 $this->merge([

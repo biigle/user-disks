@@ -6,6 +6,7 @@ use Biigle\Modules\UserDisks\UserDisk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Uri;
 use Illuminate\Validation\Rule;
+use League\Uri\Exceptions\SyntaxError;
 
 class StoreUserDisk extends FormRequest
 {
@@ -80,7 +81,12 @@ class StoreUserDisk extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->input('type') === 'webdav' && $this->has('baseUri')) {
-            $uri = Uri::of($this->input('baseUri'));
+            try {
+                $uri = Uri::of($this->input('baseUri'));
+            } catch (SyntaxError) {
+                return;
+            }
+
             $path = $uri->path();
             if ($path && $path !== '/') {
                 $this->merge([
