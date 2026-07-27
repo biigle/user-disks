@@ -5,7 +5,8 @@ namespace Biigle\Modules\UserDisks\Http\Requests;
 use Biigle\Modules\UserDisks\UserDisk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Uri;
-use League\Uri\Exceptions\SyntaxError;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class UpdateUserDisk extends FormRequest
 {
@@ -63,8 +64,10 @@ class UpdateUserDisk extends FormRequest
         if ($this->disk->type === 'webdav' && $this->has('baseUri')) {
             try {
                 $uri = Uri::of($this->input('baseUri'));
-            } catch (SyntaxError) {
-                return;
+            } catch (Throwable $e) {
+                throw ValidationException::withMessages([
+                    'baseUri' => [$e->getMessage()],
+                ]);
             }
 
             $path = $uri->path();
