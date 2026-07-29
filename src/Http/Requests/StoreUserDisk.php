@@ -6,6 +6,8 @@ use Biigle\Modules\UserDisks\UserDisk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Uri;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class StoreUserDisk extends FormRequest
 {
@@ -80,7 +82,14 @@ class StoreUserDisk extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->input('type') === 'webdav' && $this->has('baseUri')) {
-            $uri = Uri::of($this->input('baseUri'));
+            try {
+                $uri = Uri::of($this->input('baseUri'));
+            } catch (Throwable $e) {
+                throw ValidationException::withMessages([
+                    'baseUri' => [$e->getMessage()],
+                ]);
+            }
+
             $path = $uri->path();
             if ($path && $path !== '/') {
                 $this->merge([
