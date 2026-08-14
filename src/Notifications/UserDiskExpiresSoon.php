@@ -7,8 +7,10 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
 use Illuminate\Queue\SerializesModels;
 
+#[DeleteWhenMissingModels]
 class UserDiskExpiresSoon extends Notification implements ShouldQueue
 {
     use Queueable, SerializesModels;
@@ -19,13 +21,6 @@ class UserDiskExpiresSoon extends Notification implements ShouldQueue
      * @var UserDisk
      */
     protected $disk;
-
-    /**
-     * Ignore this job if the disk does not exist any more.
-     *
-     * @var bool
-     */
-    protected $deleteWhenMissingModels = true;
 
     /**
      * Create a new notification instance.
