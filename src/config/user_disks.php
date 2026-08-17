@@ -163,11 +163,16 @@ return [
     ],
 
     /*
-     | OIDC credentials for the token exchange with the dCache Keycloak.
+     | Credentials and endpoints for the dCache JWT Authorization Grant flow.
      */
     'dcache-token-exchange' => [
-       'client_id' => env('DCACHE_TOKEN_EXCHANGE_CLIENT_ID'),
-       'client_secret' => env('DCACHE_TOKEN_EXCHANGE_CLIENT_SECRET'),
+        'helmholtz_token_endpoint' => env('DCACHE_HELMHOLTZ_TOKEN_ENDPOINT', 'https://login.helmholtz.de/oauth2/token'),
+        'token_endpoint' => env('DCACHE_TOKEN_ENDPOINT', 'https://keycloak.desy.de/auth/realms/production/protocol/openid-connect/token'),
+        // Keycloak realm URL used as the audience claim in the intermediate Helmholtz token.
+        'keycloak_audience' => env('DCACHE_KEYCLOAK_AUDIENCE', 'https://keycloak.desy.de/auth/realms/production'),
+        // Keycloak client credentials for the JWT Authorization Grant.
+        'client_id' => env('DCACHE_TOKEN_EXCHANGE_CLIENT_ID'),
+        'client_secret' => env('DCACHE_TOKEN_EXCHANGE_CLIENT_SECRET'),
     ],
 
     /*

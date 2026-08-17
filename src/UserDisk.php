@@ -15,11 +15,6 @@ class UserDisk extends Model
     use HasFactory;
 
     /**
-     * Endpoint URL for dCache token exchange and refresh.
-     */
-    const DCACHE_TOKEN_ENDPOINT = "https://keycloak.desy.de/auth/realms/production/protocol/openid-connect/token";
-
-    /**
      * Map of type key to type name/description.
      */
     const TYPES = [
@@ -202,7 +197,7 @@ class UserDisk extends Model
         ];
 
         try {
-            $response = Http::asForm()->post(static::DCACHE_TOKEN_ENDPOINT, $postData);
+            $response = Http::asForm()->post(config('user_disks.dcache-token-exchange.token_endpoint'), $postData);
         } catch (Exception $e) {
             return false;
         }
