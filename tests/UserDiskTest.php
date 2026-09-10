@@ -331,8 +331,8 @@ class UserDiskTest extends ModelTestCase
     public function testRefreshDCacheToken()
     {
         config([
-            'services.dcache-token-exchange.client_id' => 'test-client-id',
-            'services.dcache-token-exchange.client_secret' => 'test-client-secret',
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
         ]);
 
         Http::fake([
@@ -365,8 +365,8 @@ class UserDiskTest extends ModelTestCase
     public function testRefreshDCacheTokenHttpError()
     {
         config([
-            'services.dcache-token-exchange.client_id' => 'test-client-id',
-            'services.dcache-token-exchange.client_secret' => 'test-client-secret',
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
         ]);
 
         Http::fake([

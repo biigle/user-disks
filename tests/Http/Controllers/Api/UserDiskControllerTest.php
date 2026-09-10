@@ -1618,6 +1618,8 @@ class UserDiskControllerTest extends ApiTestCase
             'user_disks.types' => ['dcache'],
             'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
             'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+            'services.haai.client_id' => 'haai-client-id',
+            'services.haai.client_secret' => 'haai-client-secret',
         ]);
 
         $this->beUser();
@@ -1635,7 +1637,10 @@ class UserDiskControllerTest extends ApiTestCase
             ->andReturn($socialiteProvider);
 
         Http::fake([
-            UserDisk::DCACHE_TOKEN_ENDPOINT => Http::response([
+            'login.helmholtz.de/*' => Http::response([
+                'access_token' => 'intermediate-token',
+            ], 200),
+            'keycloak.desy.de/*' => Http::response([
                 'access_token' => 'dcache-access-token',
                 'refresh_token' => 'dcache-refresh-token',
                 'expires_in' => 3600,
@@ -1665,6 +1670,64 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals('/user/data', $disk->options['pathPrefix']);
         $this->assertArrayHasKey('token_expires_at', $disk->options);
         $this->assertArrayHasKey('refresh_token_expires_at', $disk->options);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'login.helmholtz.de')
+                && $request['grant_type'] === 'urn:ietf:params:oauth:grant-type:token-exchange'
+                && $request['subject_token'] === 'oidc-access-token'
+                && $request['audience'] === config('user_disks.dcache-token-exchange.keycloak_audience')
+                && !isset($request['client_secret'])
+                && $request->hasHeader('Authorization', 'Basic '.base64_encode('haai-client-id:haai-client-secret'));
+        });
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'keycloak.desy.de')
+                && $request['grant_type'] === 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+                && $request['assertion'] === 'intermediate-token'
+                && $request['client_id'] === 'test-client-id'
+                && $request['client_secret'] === 'test-client-secret';
+        });
+    }
+
+    public function testStoreDCacheHaaiExchangeWithoutAccessToken()
+    {
+        config([
+            'user_disks.types' => ['dcache'],
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+            'services.haai.client_id' => 'haai-client-id',
+            'services.haai.client_secret' => 'haai-client-secret',
+        ]);
+
+        $this->beUser();
+
+        $socialiteUser = (object) ['token' => 'oidc-access-token'];
+
+        $socialiteProvider = Mockery::mock(Provider::class);
+        $socialiteProvider->shouldReceive('redirectUrl')->andReturnSelf();
+        $socialiteProvider->shouldReceive('setScopes')->andReturnSelf();
+        $socialiteProvider->shouldReceive('user')->andReturn($socialiteUser);
+
+        Socialite::shouldReceive('driver')
+            ->with('haai')
+            ->andReturn($socialiteProvider);
+
+        Log::shouldReceive('error')->once();
+
+        Http::fake([
+            'login.helmholtz.de/*' => Http::response(['id_token' => 'not-an-access-token'], 200),
+        ]);
+
+        $response = $this->get('/user-disks/dcache/callback');
+
+        $response->assertRedirect(route('create-storage-disks'));
+        $response->assertSessionHas('messageType', 'danger');
+        $response->assertSessionHas('message', 'There was an error during the HAAI token exchange.');
+
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), 'keycloak.desy.de'));
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNull($disk);
     }
 
     public function testStoreDCacheErrorObtainingAAIAttributes()
@@ -1696,12 +1759,14 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertNull($disk);
     }
 
-    public function testStoreDCacheErrorDuringTokenExchange()
+    public function testStoreDCacheErrorDuringHaaiExchange()
     {
         config([
             'user_disks.types' => ['dcache'],
             'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
             'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+            'services.haai.client_id' => 'haai-client-id',
+            'services.haai.client_secret' => 'haai-client-secret',
         ]);
 
         $this->beUser();
@@ -1719,14 +1784,15 @@ class UserDiskControllerTest extends ApiTestCase
 
         Log::shouldReceive('error')->once();
 
-        Http::shouldReceive('asForm')->andReturnSelf();
-        Http::shouldReceive('post')->andThrow(new Exception);
+        Http::fake([
+            'login.helmholtz.de/*' => Http::response(['error' => 'server_error'], 500),
+        ]);
 
         $response = $this->get('/user-disks/dcache/callback');
 
         $response->assertRedirect(route('create-storage-disks'));
         $response->assertSessionHas('messageType', 'danger');
-        $response->assertSessionHas('message', 'There was an error while obtaining a dCache token.');
+        $response->assertSessionHas('message', 'There was an error during the HAAI token exchange.');
 
         $disk = UserDisk::where('user_id', $this->user()->id)->first();
         $this->assertNull($disk);
@@ -1766,6 +1832,8 @@ class UserDiskControllerTest extends ApiTestCase
             'user_disks.types' => ['dcache'],
             'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
             'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+            'services.haai.client_id' => 'haai-client-id',
+            'services.haai.client_secret' => 'haai-client-secret',
         ]);
 
         $disk = UserDisk::factory()->create([
@@ -1795,7 +1863,10 @@ class UserDiskControllerTest extends ApiTestCase
             ->andReturn($socialiteProvider);
 
         Http::fake([
-            UserDisk::DCACHE_TOKEN_ENDPOINT => Http::response([
+            'login.helmholtz.de/*' => Http::response([
+                'access_token' => 'intermediate-token',
+            ], 200),
+            'keycloak.desy.de/*' => Http::response([
                 'access_token' => 'new-access-token',
                 'refresh_token' => 'new-refresh-token',
                 'expires_in' => 3600,
@@ -1817,6 +1888,12 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals('/new/path', $disk->options['pathPrefix']);
         $this->assertArrayHasKey('token_expires_at', $disk->options);
         $this->assertArrayHasKey('refresh_token_expires_at', $disk->options);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'keycloak.desy.de')
+                && $request['grant_type'] === 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+                && $request['assertion'] === 'intermediate-token';
+        });
     }
 
     public function testUpdateDCacheWithExpiredRefreshTokenErrorObtainingAAIAttributes()
@@ -1862,12 +1939,14 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals('old_refresh_token', $disk->options['refresh_token']);
     }
 
-    public function testUpdateDCacheWithExpiredRefreshTokenErrorDuringTokenExchange()
+    public function testUpdateDCacheWithExpiredRefreshTokenErrorDuringHaaiExchange()
     {
         config([
             'user_disks.types' => ['dcache'],
             'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
             'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+            'services.haai.client_id' => 'haai-client-id',
+            'services.haai.client_secret' => 'haai-client-secret',
         ]);
 
         $disk = UserDisk::factory()->create([
@@ -1897,8 +1976,102 @@ class UserDiskControllerTest extends ApiTestCase
 
         Log::shouldReceive('error')->once();
 
-        Http::shouldReceive('asForm')->andReturnSelf();
-        Http::shouldReceive('post')->andThrow(new Exception);
+        Http::fake([
+            'login.helmholtz.de/*' => Http::response(['error' => 'server_error'], 500),
+        ]);
+
+        session(['dcache-disk-id' => $disk->id]);
+        $response = $this->get('/user-disks/dcache/callback');
+
+        $response->assertRedirect(route('update-storage-disks', $disk->id));
+        $response->assertSessionHas('messageType', 'danger');
+        $response->assertSessionHas('message', 'There was an error during the HAAI token exchange.');
+
+        $disk->refresh();
+        $this->assertEquals('old_access_token', $disk->options['token']);
+        $this->assertEquals('old_refresh_token', $disk->options['refresh_token']);
+    }
+
+    public function testStoreDCacheErrorDuringJwtGrant()
+    {
+        config([
+            'user_disks.types' => ['dcache'],
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+            'services.haai.client_id' => 'haai-client-id',
+            'services.haai.client_secret' => 'haai-client-secret',
+        ]);
+
+        $this->beUser();
+
+        $socialiteUser = (object) ['token' => 'oidc-access-token'];
+
+        $socialiteProvider = Mockery::mock(Provider::class);
+        $socialiteProvider->shouldReceive('redirectUrl')->andReturnSelf();
+        $socialiteProvider->shouldReceive('setScopes')->andReturnSelf();
+        $socialiteProvider->shouldReceive('user')->andReturn($socialiteUser);
+
+        Socialite::shouldReceive('driver')
+            ->with('haai')
+            ->andReturn($socialiteProvider);
+
+        Log::shouldReceive('error')->once();
+
+        Http::fake([
+            'login.helmholtz.de/*' => Http::response(['access_token' => 'intermediate-token'], 200),
+            'keycloak.desy.de/*' => Http::response(['error' => 'server_error'], 500),
+        ]);
+
+        $response = $this->get('/user-disks/dcache/callback');
+
+        $response->assertRedirect(route('create-storage-disks'));
+        $response->assertSessionHas('messageType', 'danger');
+        $response->assertSessionHas('message', 'There was an error while obtaining a dCache token.');
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNull($disk);
+    }
+
+    public function testUpdateDCacheWithExpiredRefreshTokenErrorDuringJwtGrant()
+    {
+        config([
+            'user_disks.types' => ['dcache'],
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+            'services.haai.client_id' => 'haai-client-id',
+            'services.haai.client_secret' => 'haai-client-secret',
+        ]);
+
+        $disk = UserDisk::factory()->create([
+            'type' => 'dcache',
+            'name' => 'my dcache',
+            'options' => [
+                'token' => 'old_access_token',
+                'refresh_token' => 'old_refresh_token',
+                'token_expires_at' => now()->addMinutes(30),
+                'refresh_token_expires_at' => now()->addHour(),
+            ],
+        ]);
+
+        $this->be($disk->user);
+
+        $socialiteUser = (object) ['token' => 'oidc-access-token'];
+
+        $socialiteProvider = Mockery::mock(Provider::class);
+        $socialiteProvider->shouldReceive('redirectUrl')->andReturnSelf();
+        $socialiteProvider->shouldReceive('setScopes')->andReturnSelf();
+        $socialiteProvider->shouldReceive('user')->andReturn($socialiteUser);
+
+        Socialite::shouldReceive('driver')
+            ->with('haai')
+            ->andReturn($socialiteProvider);
+
+        Log::shouldReceive('error')->once();
+
+        Http::fake([
+            'login.helmholtz.de/*' => Http::response(['access_token' => 'intermediate-token'], 200),
+            'keycloak.desy.de/*' => Http::response(['error' => 'server_error'], 500),
+        ]);
 
         session(['dcache-disk-id' => $disk->id]);
         $response = $this->get('/user-disks/dcache/callback');
