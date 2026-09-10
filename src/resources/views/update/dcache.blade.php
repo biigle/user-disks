@@ -1,5 +1,5 @@
 <div class="col-xs-12">
-    @if (Illuminate\Support\Carbon::parse($disk->options['refresh_token_expires_at'])->isPast())
+    @if (!($disk->options['haai_refresh_token'] ?? null))
         <p class="text-warning">
             Your dCache access token is expired and cannot be automatically refreshed. Click on "update disk" below to request a new token.
         </p>

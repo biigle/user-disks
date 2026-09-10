@@ -10,7 +10,6 @@ use Biigle\Modules\UserDisks\UserDisk;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -110,62 +109,10 @@ class UserDiskController extends Controller
                 ->with('messageType', 'danger')
                 ->with('message', 'There was an error while obtaining the user attributes.');
         }
+            dd($user);
 
-        // Step 1: Exchange the HAAI token for one addressed to dCache Keycloak.
-        // The audience claim in the resulting token must match the Keycloak
-        // realm so Keycloak accepts it in the JWT Authorization Grant (step 2).
         try {
-            $url = config('user_disks.dcache-token-exchange.helmholtz_token_endpoint');
-            // The HAAI token endpoint expects the client credentials in the
-            // Authorization header (see the biigle/laravel-socialite-haai provider).
-            $helmholtzResponse = Http::asForm()
-                ->withBasicAuth(
-                    config('services.haai.client_id'),
-                    config('services.haai.client_secret')
-                )
-                ->post($url, [
-                    'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
-                    'subject_token' => $user->token,
-                    'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                    'requested_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                    'audience' => config('user_disks.dcache-token-exchange.keycloak_audience'),
-                    'scope' => 'openid profile email token-exchange',
-                ])->throw();
-        } catch (Exception $e) {
-            Log::error('There was an error during the HAAI token exchange.', ['exception' => $e]);
-
-            return $redirectResponse
-                ->with('messageType', 'danger')
-                ->with('message', 'There was an error during the HAAI token exchange.');
-        }
-
-        $intermediateToken = $helmholtzResponse->json('access_token');
-
-        if (!$intermediateToken) {
-            // Don't log the response body because it may contain other tokens.
-            Log::error('The HAAI token exchange response contained no access token.', [
-                'status' => $helmholtzResponse->status(),
-            ]);
-
-            return $redirectResponse
-                ->with('messageType', 'danger')
-                ->with('message', 'There was an error during the HAAI token exchange.');
-        }
-
-        // Step 2: JWT Authorization Grant: present the Keycloak-addressed token to
-        // Keycloak to obtain the final dCache access and refresh tokens.
-        try {
-            $url = config('user_disks.dcache-token-exchange.token_endpoint');
-            $response = Http::asForm()->post($url, [
-                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                'assertion' => $intermediateToken,
-                'client_id' => config('user_disks.dcache-token-exchange.client_id'),
-                'client_secret' => config('user_disks.dcache-token-exchange.client_secret'),
-                // Setting the scope here is critical, otherwise the scope will be reset
-                // to the default scope after token refresh (and the token will no longer
-                // work for dCache).
-                'scope' => 'openid profile email',
-            ])->throw();
+            $diskOptions = UserDisk::getDCacheTokenOptions($user->token);
         } catch (Exception $e) {
             Log::error('There was an error while obtaining a dCache token.', ['exception' => $e]);
 
@@ -174,13 +121,9 @@ class UserDiskController extends Controller
                 ->with('message', 'There was an error while obtaining a dCache token.');
         }
 
-        $data = $response->json();
-        $diskOptions = [
-            'token' => $data['access_token'],
-            'refresh_token' => $data['refresh_token'],
-            'token_expires_at' => now()->addSeconds($data['expires_in']),
-            'refresh_token_expires_at' => now()->addSeconds($data['refresh_expires_in']),
-        ];
+        // The HAAI offline token is the long lived credential from which new dCache
+        // tokens are obtained, as the JWT Authorization Grant issues no refresh token.
+        $diskOptions['haai_refresh_token'] = $user->refreshToken;
 
         // The auth flow was initiated for a new storage disk.
         if (is_null($id)) {
@@ -447,8 +390,17 @@ class UserDiskController extends Controller
     {
         return Socialite::driver('haai')
             ->redirectUrl(url('/user-disks/dcache/callback'))
-            // eduperson_principal_name is critical for the token exchange!
-            ->setScopes(['openid', 'profile', 'email', 'eduperson_principal_name'])
+            // eduperson_principal_name and token-exchange are critical for the token
+            // exchange (the subject token must carry the token-exchange scope).
+            // offline_access is required for the long lived HAAI refresh token.
+            ->setScopes([
+                'openid',
+                'profile',
+                'email',
+                'eduperson_principal_name',
+                'token-exchange',
+                'offline_access',
+            ])
             ->redirect();
     }
 }

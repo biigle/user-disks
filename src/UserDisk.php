@@ -157,7 +157,7 @@ class UserDisk extends Model
     }
 
     /**
-     * Check if the dcache refresh token is about to expire (within 2 hours).
+     * Check if the HAAI refresh token is about to expire (within 2 hours).
      *
      * @return bool
      */
@@ -167,8 +167,9 @@ class UserDisk extends Model
             return false;
         }
 
-        $refreshTokenExpiresAt = $this->options['refresh_token_expires_at'] ?? null;
+        $refreshTokenExpiresAt = $this->options['haai_refresh_token_expires_at'] ?? null;
 
+        // Offline tokens have no expiration date.
         if (is_null($refreshTokenExpiresAt)) {
             return false;
         }
@@ -177,42 +178,101 @@ class UserDisk extends Model
     }
 
     /**
-     * Refresh the dcache access and refresh tokens.
+     * Obtain a new dCache access token with a HAAI access token.
+     *
+     * @param string $haaiAccessToken
+     * @throws Exception If any step of the token chain fails
+     * @return array Disk options for the new dCache access token
+     */
+    public static function getDCacheTokenOptions($haaiAccessToken)
+    {
+        // Step 1: Exchange the HAAI token for one addressed to dCache Keycloak.
+        // The audience claim in the resulting token must match the Keycloak
+        // realm so Keycloak accepts it in the JWT Authorization Grant (step 2).
+        // The HAAI token endpoint expects the client credentials in the
+        // Authorization header (see the biigle/laravel-socialite-haai provider).
+        $response = Http::asForm()
+            ->withBasicAuth(
+                config('services.haai.client_id'),
+                config('services.haai.client_secret')
+            )
+            ->post(config('user_disks.dcache-token-exchange.helmholtz_token_endpoint'), [
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token' => $haaiAccessToken,
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'requested_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'audience' => config('user_disks.dcache-token-exchange.keycloak_audience'),
+                'scope' => 'openid profile email token-exchange',
+            ])->throw();
+
+        $intermediateToken = $response->json('access_token');
+
+        if (!$intermediateToken) {
+            // Don't include the response body because it may contain other tokens.
+            throw new Exception('The HAAI token exchange response contained no access token.');
+        }
+
+        // Step 2: JWT Authorization Grant: present the Keycloak-addressed token to
+        // dCache Keycloak to obtain the dCache access token. This grant never issues
+        // a refresh token (it always creates a transient session), so the HAAI
+        // offline token is kept to run this chain again.
+        $response = Http::asForm()
+            ->post(config('user_disks.dcache-token-exchange.token_endpoint'), [
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                'assertion' => $intermediateToken,
+                'client_id' => config('user_disks.dcache-token-exchange.client_id'),
+                'client_secret' => config('user_disks.dcache-token-exchange.client_secret'),
+                // Setting the scope here is critical, otherwise the scope will be reset
+                // to the default scope (and the token will no longer work for dCache).
+                'scope' => 'openid profile email',
+            ])->throw();
+
+        $data = $response->json();
+
+        return [
+            'token' => $data['access_token'],
+            'token_expires_at' => now()->addSeconds($data['expires_in']),
+        ];
+    }
+
+    /**
+     * Refresh the dcache access token with the HAAI offline token.
      *
      * @return bool True if the refresh was successful, false otherwise
      */
     public function refreshDCacheToken()
     {
-        $refreshToken = $this->options['refresh_token'] ?? null;
+        $refreshToken = $this->options['haai_refresh_token'] ?? null;
 
         if (!$refreshToken) {
             return false;
         }
 
-        $postData = [
-            'client_id' => config('user_disks.dcache-token-exchange.client_id'),
-            'client_secret' => config('user_disks.dcache-token-exchange.client_secret'),
-            'grant_type' => 'refresh_token',
-            'refresh_token' => $refreshToken,
-        ];
-
         try {
-            $response = Http::asForm()->post(config('user_disks.dcache-token-exchange.token_endpoint'), $postData);
+            $response = Http::asForm()
+                ->withBasicAuth(
+                    config('services.haai.client_id'),
+                    config('services.haai.client_secret')
+                )
+                ->post(config('user_disks.dcache-token-exchange.helmholtz_token_endpoint'), [
+                    'grant_type' => 'refresh_token',
+                    'refresh_token' => $refreshToken,
+                ])->throw();
+
+            $data = $response->json();
+            $options = array_merge(
+                $this->options,
+                static::getDCacheTokenOptions($data['access_token'])
+            );
         } catch (Exception $e) {
             return false;
         }
 
-        if (!$response->successful()) {
-            return false;
-        }
-
-        $data = $response->json();
-
-        $options = $this->options;
-        $options['token'] = $data['access_token'];
-        $options['refresh_token'] = $data['refresh_token'];
-        $options['token_expires_at'] = now()->addSeconds($data['expires_in']);
-        $options['refresh_token_expires_at'] = now()->addSeconds($data['refresh_expires_in']);
+        $options['haai_refresh_token'] = $data['refresh_token'];
+        // Offline tokens have no expiration date, in which case refresh_expires_in is 0.
+        $options['haai_refresh_token_expires_at'] = ($data['refresh_expires_in'] ?? 0) > 0
+            ? now()->addSeconds($data['refresh_expires_in'])
+            : null;
 
         $this->update(['options' => $options]);
 
