@@ -30,6 +30,12 @@ Different storage disk types require additional packages to be installed:
   composer require biigle/laravel-dcache biigle/laravel-socialite-haai
   ```
   Follow the installation instructions of [`biigle/laravel-socialite-haai`](https://github.com/biigle/laravel-socialite-haai) in case it wasn't set up laready (e.g via `biigle/auth-haai`). In addition, you have to add the `DCACHE_TOKEN_EXCHANGE_CLIENT_ID` and `DCACHE_TOKEN_EXCHANGE_CLIENT_SECRET` variables to the `.env` file. These are the OICD credentials for the dCache Keycloak.
+
+  A dCache token is obtained in two steps: first the HAAI access token of the user is exchanged for a token addressed to the dCache Keycloak at the Helmholtz AAI token endpoint (using the HAAI client credentials of `services.haai`, i.e. the ones configured for `biigle/laravel-socialite-haai`), then this token is presented to the dCache Keycloak in a JWT authorization grant to obtain the actual dCache access and refresh tokens (using the credentials mentioned above). The endpoints of this flow have sensible defaults but can be overridden with these optional environment variables:
+
+  - `DCACHE_HELMHOLTZ_TOKEN_ENDPOINT`: Token endpoint of the Helmholtz AAI used for the first step.
+  - `DCACHE_TOKEN_ENDPOINT`: Token endpoint of the dCache Keycloak used for the second step and for token refreshes.
+  - `DCACHE_KEYCLOAK_AUDIENCE`: Audience requested in the first step. This must match the dCache Keycloak realm URL, otherwise Keycloak rejects the token in the second step.
 - **Aruna**: No additional packages required (included by default but disabled)
 
 Install only the packages for the disk types you plan to enable.

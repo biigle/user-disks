@@ -116,16 +116,21 @@ class UserDiskController extends Controller
         // realm so Keycloak accepts it in the JWT Authorization Grant (step 2).
         try {
             $url = config('user_disks.dcache-token-exchange.helmholtz_token_endpoint');
-            $helmholtzResponse = Http::asForm()->post($url, [
-                'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'subject_token' => $user->token,
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'requested_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'audience' => config('user_disks.dcache-token-exchange.keycloak_audience'),
-                'scope' => 'openid profile email token-exchange',
-                'client_id' => config('services.haai.client_id'),
-                'client_secret' => config('services.haai.client_secret'),
-            ])->throw();
+            // The HAAI token endpoint expects the client credentials in the
+            // Authorization header (see the biigle/laravel-socialite-haai provider).
+            $helmholtzResponse = Http::asForm()
+                ->withBasicAuth(
+                    config('services.haai.client_id'),
+                    config('services.haai.client_secret')
+                )
+                ->post($url, [
+                    'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+                    'subject_token' => $user->token,
+                    'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                    'requested_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                    'audience' => config('user_disks.dcache-token-exchange.keycloak_audience'),
+                    'scope' => 'openid profile email token-exchange',
+                ])->throw();
         } catch (Exception $e) {
             Log::error('There was an error during the HAAI token exchange.', ['exception' => $e]);
 
@@ -134,7 +139,18 @@ class UserDiskController extends Controller
                 ->with('message', 'There was an error during the HAAI token exchange.');
         }
 
-        $intermediateToken = $helmholtzResponse->json()['access_token'];
+        $intermediateToken = $helmholtzResponse->json('access_token');
+
+        if (!$intermediateToken) {
+            // Don't log the response body because it may contain other tokens.
+            Log::error('The HAAI token exchange response contained no access token.', [
+                'status' => $helmholtzResponse->status(),
+            ]);
+
+            return $redirectResponse
+                ->with('messageType', 'danger')
+                ->with('message', 'There was an error during the HAAI token exchange.');
+        }
 
         // Step 2: JWT Authorization Grant: present the Keycloak-addressed token to
         // Keycloak to obtain the final dCache access and refresh tokens.

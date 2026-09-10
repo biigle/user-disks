@@ -1557,6 +1557,64 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals('/user/data', $disk->options['pathPrefix']);
         $this->assertArrayHasKey('token_expires_at', $disk->options);
         $this->assertArrayHasKey('refresh_token_expires_at', $disk->options);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'login.helmholtz.de')
+                && $request['grant_type'] === 'urn:ietf:params:oauth:grant-type:token-exchange'
+                && $request['subject_token'] === 'oidc-access-token'
+                && $request['audience'] === config('user_disks.dcache-token-exchange.keycloak_audience')
+                && !isset($request['client_secret'])
+                && $request->hasHeader('Authorization', 'Basic '.base64_encode('haai-client-id:haai-client-secret'));
+        });
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'keycloak.desy.de')
+                && $request['grant_type'] === 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+                && $request['assertion'] === 'intermediate-token'
+                && $request['client_id'] === 'test-client-id'
+                && $request['client_secret'] === 'test-client-secret';
+        });
+    }
+
+    public function testStoreDCacheHaaiExchangeWithoutAccessToken()
+    {
+        config([
+            'user_disks.types' => ['dcache'],
+            'user_disks.dcache-token-exchange.client_id' => 'test-client-id',
+            'user_disks.dcache-token-exchange.client_secret' => 'test-client-secret',
+            'services.haai.client_id' => 'haai-client-id',
+            'services.haai.client_secret' => 'haai-client-secret',
+        ]);
+
+        $this->beUser();
+
+        $socialiteUser = (object) ['token' => 'oidc-access-token'];
+
+        $socialiteProvider = Mockery::mock(Provider::class);
+        $socialiteProvider->shouldReceive('redirectUrl')->andReturnSelf();
+        $socialiteProvider->shouldReceive('setScopes')->andReturnSelf();
+        $socialiteProvider->shouldReceive('user')->andReturn($socialiteUser);
+
+        Socialite::shouldReceive('driver')
+            ->with('haai')
+            ->andReturn($socialiteProvider);
+
+        Log::shouldReceive('error')->once();
+
+        Http::fake([
+            'login.helmholtz.de/*' => Http::response(['id_token' => 'not-an-access-token'], 200),
+        ]);
+
+        $response = $this->get('/user-disks/dcache/callback');
+
+        $response->assertRedirect(route('create-storage-disks'));
+        $response->assertSessionHas('messageType', 'danger');
+        $response->assertSessionHas('message', 'There was an error during the HAAI token exchange.');
+
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), 'keycloak.desy.de'));
+
+        $disk = UserDisk::where('user_id', $this->user()->id)->first();
+        $this->assertNull($disk);
     }
 
     public function testStoreDCacheErrorObtainingAAIAttributes()
@@ -1717,6 +1775,12 @@ class UserDiskControllerTest extends ApiTestCase
         $this->assertEquals('/new/path', $disk->options['pathPrefix']);
         $this->assertArrayHasKey('token_expires_at', $disk->options);
         $this->assertArrayHasKey('refresh_token_expires_at', $disk->options);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'keycloak.desy.de')
+                && $request['grant_type'] === 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+                && $request['assertion'] === 'intermediate-token';
+        });
     }
 
     public function testUpdateDCacheWithExpiredRefreshTokenErrorObtainingAAIAttributes()
