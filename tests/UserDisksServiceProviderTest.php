@@ -2,9 +2,9 @@
 
 namespace Biigle\Tests\Modules\UserDisks;
 
+use Biigle\Enums\Role;
 use Biigle\Modules\UserDisks\UserDisk;
 use Biigle\Modules\UserDisks\UserDisksServiceProvider;
-use Biigle\Role;
 use Biigle\User;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Gate;

@@ -2,9 +2,9 @@
 
 namespace Biigle\Modules\UserDisks\Policies;
 
+use Biigle\Enums\Role;
 use Biigle\Modules\UserDisks\UserDisk;
 use Biigle\Policies\CachedPolicy;
-use Biigle\Role;
 use Biigle\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
