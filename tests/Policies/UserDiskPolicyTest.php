@@ -3,8 +3,8 @@
 namespace Biigle\Tests\Modules\UserDisks\Policies;
 
 use ApiTestCase;
+use Biigle\Enums\Role;
 use Biigle\Modules\UserDisks\UserDisk;
-use Biigle\Role;
 
 class UserDiskPolicyTest extends ApiTestCase
 {

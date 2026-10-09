@@ -2,9 +2,9 @@
 
 namespace Biigle\Modules\UserDisks\Policies;
 
+use Biigle\Enums\Role;
 use Biigle\Modules\UserDisks\UserDisk;
 use Biigle\Policies\CachedPolicy;
-use Biigle\Role;
 use Biigle\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -36,7 +36,7 @@ class UserDiskPolicy extends CachedPolicy
      */
     public function create(User $user)
     {
-        return $user->role_id === Role::editorId() || $user->role_id === Role::adminId();
+        return $user->role === Role::EDITOR || $user->role === Role::ADMIN;
     }
 
     /**

@@ -2,9 +2,9 @@
 
 namespace Biigle\Tests\Modules\UserDisks;
 
+use Biigle\Enums\Role;
 use Biigle\Modules\UserDisks\UserDisk;
 use Biigle\Modules\UserDisks\UserDisksServiceProvider;
-use Biigle\Role;
 use Biigle\User;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Gate;
@@ -31,7 +31,7 @@ class UserDisksServiceProviderTest extends TestCase
     {
         $disk = UserDisk::factory()->create();
         $admin = User::factory()->create([
-            'role_id' => Role::adminId(),
+            'role' => Role::ADMIN,
         ]);
         $this->be($admin);
         $this->assertTrue(Gate::allows('use-disk', "disk-{$disk->id}"));
