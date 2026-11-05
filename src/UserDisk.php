@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 
+#[Fillable(['name','type','user_id','options','expires_at',])]
 class UserDisk extends Model
 {
     use HasFactory;
@@ -26,19 +27,7 @@ class UserDisk extends Model
         'azure' => 'Azure Blob Storage',
     ];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'name',
-        'type',
-        'user_id',
-        'options',
-        'expires_at',
-    ];
-
+    
     /**
      * The attributes that should be cast.
      *
